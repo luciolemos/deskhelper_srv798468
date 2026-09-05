@@ -1352,7 +1352,23 @@ body {
 }
 
 .db-contact-card .db-form-actions {
-  justify-content: center;
+  justify-content: flex-end;
+}
+
+.db-contact-card .db-form-actions .db-card-link {
+  width: auto;
+}
+
+@media (max-width: 700px) {
+  .db-contact-card .db-form-actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .db-contact-card .db-form-actions .db-card-link {
+    justify-content: center;
+    width: 100%;
+  }
 }
 
 .db-card-request-card .db-form-actions {
