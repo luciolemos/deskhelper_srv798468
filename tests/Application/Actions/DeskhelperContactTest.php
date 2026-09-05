@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Application\Actions;
 
+use PDO;
 use Tests\TestCase;
 
 final class DeskhelperContactTest extends TestCase
@@ -24,6 +25,29 @@ final class DeskhelperContactTest extends TestCase
         $this->assertSame(200, $response->getStatusCode());
         $this->assertStringContainsString('name="csrf_token"', $body);
         $this->assertStringContainsString('Fale com a equipe responsável pelo Deskhelper', $body);
+    }
+
+    public function testAuthenticatedContactPageShowsUserMenu(): void
+    {
+        $_SESSION = [
+            'deskhelper_user_id' => 1,
+            'deskhelper_user_name' => 'Administrador Deskhelper',
+            'deskhelper_user_email' => 'admin@deskhelper.local',
+            'deskhelper_user_roles' => ['admin'],
+            'csrf_token' => 'contact-csrf',
+        ];
+
+        $app = $this->getAppInstance();
+        $app->getContainer()->get(PDO::class)->exec(
+            "UPDATE users SET name = 'Administrador Deskhelper', avatar_path = 'uploads/avatars/admin.png' WHERE id = 1"
+        );
+        $response = $app->handle($this->createRequest('GET', '/deskhelper/contato'));
+        $body = (string) $response->getBody();
+
+        $this->assertSame(200, $response->getStatusCode());
+        $this->assertStringContainsString('class="db-user-menu"', $body);
+        $this->assertStringContainsString('Administrador Deskhelper', $body);
+        $this->assertStringContainsString('Foto do usuário', $body);
     }
 
     public function testValidContactMessageIsAccepted(): void
