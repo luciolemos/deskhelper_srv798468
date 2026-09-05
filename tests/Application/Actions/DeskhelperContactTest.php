@@ -48,6 +48,9 @@ final class DeskhelperContactTest extends TestCase
         $this->assertStringContainsString('class="db-user-menu"', $body);
         $this->assertStringContainsString('Administrador Deskhelper', $body);
         $this->assertStringContainsString('Foto do usuário', $body);
+        $this->assertStringContainsString('aria-label="Menu do deskhelper"', $body);
+        $this->assertStringContainsString('db-menu-item db-menu-item-primary is-active', $body);
+        $this->assertStringNotContainsString('PAINEL DE CONTROLE', $body);
     }
 
     public function testValidContactMessageIsAccepted(): void
