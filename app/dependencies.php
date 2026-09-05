@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Application\Settings\SettingsInterface;
+use App\Application\Notification\ContactMailer;
 use App\Application\Security\PasswordResetMailer;
 use App\Application\Security\PasswordResetService;
 use App\Infrastructure\Persistence\Dashboard\DashboardRepository;
@@ -34,6 +35,9 @@ return function (ContainerBuilder $containerBuilder) {
             $logger->pushHandler($handler);
 
             return $logger;
+        },
+        ContactMailer::class => function (ContainerInterface $c) {
+            return new ContactMailer($c->get(LoggerInterface::class));
         },
         Twig::class => function (ContainerInterface $c) {
             $twig = Twig::create(__DIR__ . '/../templates', [
@@ -77,6 +81,8 @@ return function (ContainerBuilder $containerBuilder) {
                 $navActive = 'guide';
             } elseif (preg_match('#/help$#', $currentPath) === 1) {
                 $navActive = 'faq';
+            } elseif (preg_match('#/contato$#', $currentPath) === 1) {
+                $navActive = 'contact';
             } elseif (preg_match('#/tickets/new$#', $currentPath) === 1) {
                 $navActive = 'tickets_new';
             } elseif (preg_match('#/tickets(?:/\\d+)?$#', $currentPath) === 1) {

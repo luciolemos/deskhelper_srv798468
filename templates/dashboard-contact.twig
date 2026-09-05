@@ -153,7 +153,7 @@
   </aside>
   <div class="db-sidebar-backdrop" data-sidebar-backdrop aria-hidden="true"></div>
 
-  <main class="db-main" aria-label="Contato interno do dashboard">
+  <main class="db-main" aria-label="Contato do Deskhelper">
     {% include 'components/dashboard-topbar.twig' with {
       lastUpdated: lastUpdated,
       breadcrumbs: [
@@ -168,13 +168,13 @@
           { label: 'Dashboard', url: '{{ app_base_path }}' },
           { label: 'Contato' }
         ],
-        title: 'Contato interno',
-        subtitle: 'Canais oficiais de contato e suporte do dashboard'
+        title: 'Contato',
+        subtitle: 'Fale com a equipe responsável pelo Deskhelper'
       } %}
 
       <article class="db-card db-card--standard db-readme-card db-contact-card" aria-label="Formulário de contato">
         <p class="db-contact-intro">
-          Use o formulário para dúvidas, correções de conteúdo e suporte operacional do dashboard.
+          Use o formulário para dúvidas, sugestões e suporte relacionado ao Deskhelper.
         </p>
 
         {% if formSuccess %}
@@ -185,11 +185,12 @@
 
         {% if formErrors is defined and formErrors is not empty %}
           <div class="db-form-alert is-error" role="alert">
-            Corrija os campos destacados para enviar sua mensagem.
+            {{ formErrors.form|default('Corrija os campos destacados para enviar sua mensagem.') }}
           </div>
         {% endif %}
 
         <form class="db-contact-form" method="post" action="{{ app_base_path }}/contato" novalidate>
+          <input type="hidden" name="csrf_token" value="{{ csrfToken|default('') }}">
           <label class="db-hp-field" aria-hidden="true">
             <span>Website</span>
             <input
@@ -268,7 +269,8 @@
             {% endif %}
           </label>
 
-          <div class="db-form-actions">
+          <div class="db-form-actions db-form-actions-wrap">
+            <a href="{{ app_base_path }}/login" class="db-card-link db-card-link-secondary">Voltar ao login</a>
             <button type="submit" class="db-card-link">Enviar mensagem</button>
           </div>
         </form>

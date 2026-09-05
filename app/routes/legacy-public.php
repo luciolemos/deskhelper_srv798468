@@ -5,6 +5,7 @@ declare(strict_types=1);
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use League\CommonMark\CommonMarkConverter;
+use App\Application\Notification\ContactMailer;
 use App\Infrastructure\Persistence\Dashboard\DashboardRepository;
 use Slim\Views\Twig;
 
@@ -231,7 +232,7 @@ HTML;
             ], $navbarAuthContext()));
     });
 
-$app->get('/contato', function (Request $request, Response $response) use ($app, $navbarAuthContext, $buildGroupedSections) {
+$app->get('/contato', function (Request $request, Response $response) use ($app, $navbarAuthContext, $buildGroupedSections, $ensureCsrfToken) {
     /** @var DashboardRepository $repo */
     $repo = $app->getContainer()->get(DashboardRepository::class);
     $twig = $app->getContainer()->get(Twig::class);
@@ -256,6 +257,7 @@ $app->get('/contato', function (Request $request, Response $response) use ($app,
             'website' => '',
         ],
         'formSuccess' => false,
+        'csrfToken' => $ensureCsrfToken(),
     ], $navbarAuthContext()));
 });
 
@@ -442,10 +444,12 @@ $app->post('/solicitar-card', function (Request $request, Response $response) us
     ], $navbarAuthContext()));
 });
 
-$app->post('/contato', function (Request $request, Response $response) use ($app, $navbarAuthContext, $buildGroupedSections) {
+$app->post('/contato', function (Request $request, Response $response) use ($app, $navbarAuthContext, $buildGroupedSections, $ensureCsrfToken, $isValidCsrf) {
     /** @var DashboardRepository $repo */
     $repo = $app->getContainer()->get(DashboardRepository::class);
     $twig = $app->getContainer()->get(Twig::class);
+    /** @var ContactMailer $contactMailer */
+    $contactMailer = $app->getContainer()->get(ContactMailer::class);
 
     $meta = $repo->getMeta();
     $sections = $repo->getSections();
@@ -461,6 +465,10 @@ $app->post('/contato', function (Request $request, Response $response) use ($app
     $website = trim((string) ($payload['website'] ?? ''));
 
     $formErrors = [];
+
+    if (!$isValidCsrf($request)) {
+        $formErrors['form'] = 'A sessão do formulário expirou. Recarregue a página e tente novamente.';
+    }
 
     if ($website !== '') {
         return $twig->render($response, 'dashboard-contact.twig', array_merge([
@@ -479,11 +487,14 @@ $app->post('/contato', function (Request $request, Response $response) use ($app
                 'website' => '',
             ],
             'formSuccess' => true,
+            'csrfToken' => $ensureCsrfToken(),
         ], $navbarAuthContext()));
     }
 
     if ($name === '') {
         $formErrors['name'] = 'Informe seu nome.';
+    } elseif (mb_strlen($name) > 120) {
+        $formErrors['name'] = 'O nome deve ter no máximo 120 caracteres.';
     }
 
     if ($email === '') {
@@ -494,6 +505,10 @@ $app->post('/contato', function (Request $request, Response $response) use ($app
 
     if ($subject === '') {
         $formErrors['subject'] = 'Informe o assunto.';
+    } elseif (preg_match('/[\r\n]/', $subject) === 1) {
+        $formErrors['subject'] = 'O assunto não pode conter quebras de linha.';
+    } elseif (mb_strlen($subject) > 120) {
+        $formErrors['subject'] = 'O assunto deve ter no máximo 120 caracteres.';
     }
 
     if ($message === '') {
@@ -505,24 +520,15 @@ $app->post('/contato', function (Request $request, Response $response) use ($app
     $formSuccess = false;
 
     if ($formErrors === []) {
-        $logLine = sprintf(
-            "[%s] nome=%s | email=%s | assunto=%s | mensagem=%s%s",
-            date('Y-m-d H:i:s'),
-            str_replace(["\r", "\n"], ' ', $name),
-            str_replace(["\r", "\n"], ' ', $email),
-            str_replace(["\r", "\n"], ' ', $subject),
-            str_replace(["\r", "\n"], ' ', $message),
-            PHP_EOL
-        );
-
-        $logFile = dirname(__DIR__) . '/../logs/contact-messages.log';
-        @file_put_contents($logFile, $logLine, FILE_APPEND | LOCK_EX);
-
-        $formSuccess = true;
-        $name = '';
-        $email = '';
-        $subject = '';
-        $message = '';
+        if ($contactMailer->send($name, $email, $subject, $message)) {
+            $formSuccess = true;
+            $name = '';
+            $email = '';
+            $subject = '';
+            $message = '';
+        } else {
+            $formErrors['form'] = 'Não foi possível enviar a mensagem agora. Tente novamente mais tarde.';
+        }
     }
 
     return $twig->render($response, 'dashboard-contact.twig', array_merge([
@@ -541,5 +547,6 @@ $app->post('/contato', function (Request $request, Response $response) use ($app
             'website' => '',
         ],
         'formSuccess' => $formSuccess,
+        'csrfToken' => $ensureCsrfToken(),
     ], $navbarAuthContext()));
 });
