@@ -10,6 +10,6 @@
     "test:visual:legacy": "DESKHELPER_LEGACY_TESTS=1 node node_modules/playwright/cli.js test tests/visual/legacy"
   },
   "devDependencies": {
-    "@playwright/test": "^1.52.0"
+    "@playwright/test": "^1.62.1"
   }
 }
