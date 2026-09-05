@@ -1,0 +1,103 @@
+{% extends 'layouts/base.twig' %}
+
+{% block global_topnav %}{% endblock %}
+
+{% block content %}
+{% set resolvedToastMessage = toastMessage|default(flashMessage|default('')) %}
+{% set resolvedToastType = toastType|default(
+  flashMessage|default('') starts with 'Falha'
+  or flashMessage|default('') starts with 'Senha atual inválida'
+  or flashMessage|default('') starts with 'A nova senha'
+  or flashMessage|default('') starts with 'A confirmação'
+  or flashMessage|default('') starts with 'Informe'
+  or flashMessage|default('') starts with 'Formato de foto'
+  or flashMessage|default('') starts with 'A foto deve'
+  or flashMessage|default('') starts with 'Já existe'
+    ? 'error'
+    : 'success'
+) %}
+{% set resolvedToastTitle = toastTitle|default('Deskhelper') %}
+{% set resolvedToastAutoHide = toastAutoHide is defined ? toastAutoHide : true %}
+{% if resolvedToastMessage %}
+  <div class="dh-toast-stack" aria-label="Notificações do sistema">
+    {% include 'components/deskhelper-toast.twig' with {
+      title: resolvedToastTitle,
+      message: resolvedToastMessage,
+      type: resolvedToastType,
+      autoHide: resolvedToastAutoHide
+    } %}
+  </div>
+{% endif %}
+<div class="db-shell">
+  {% include 'components/deskhelper-sidebar.twig' with { sidebar_oob: false } %}
+  <div class="db-sidebar-backdrop" data-sidebar-backdrop aria-hidden="true"></div>
+
+  <main class="db-main" aria-label="Conteúdo do deskhelper">
+    {% include 'components/deskhelper-dashboard-topbar.twig' %}
+
+    <div id="db-content" class="db-main-body">
+      {% set resolvedShellTitle = shellTitle|default(block('deskhelper_shell_title')) %}
+      {% set resolvedShellSubtitle = shellSubtitle|default(block('deskhelper_shell_subtitle')) %}
+      {% if shellBreadcrumbs is defined %}
+        {% set resolvedShellBreadcrumbs = shellBreadcrumbs %}
+      {% elseif deskhelper_nav.active == 'app' %}
+        {% set resolvedShellBreadcrumbs = [
+          { label: 'Deskhelper', url: app_url('app') },
+          { label: 'Dashboard', url: app_url('app') }
+        ] %}
+      {% elseif deskhelper_nav.active == 'tickets' %}
+        {% set resolvedShellBreadcrumbs = [
+          { label: 'Deskhelper', url: app_url('app') },
+          { label: deskhelper_session_user.is_operator and not deskhelper_session_user.is_admin ? 'Fila' : 'Tickets', url: app_url('tickets') }
+        ] %}
+      {% elseif deskhelper_nav.active == 'tickets_new' %}
+        {% set resolvedShellBreadcrumbs = [
+          { label: 'Deskhelper', url: app_url('app') },
+          { label: deskhelper_session_user.is_operator and not deskhelper_session_user.is_admin ? 'Fila' : 'Tickets', url: app_url('tickets') }
+        ] %}
+      {% elseif deskhelper_nav.active == 'admin_pending' %}
+        {% set resolvedShellBreadcrumbs = [
+          { label: 'Deskhelper', url: app_url('app') },
+          { label: 'Admin' }
+        ] %}
+      {% elseif deskhelper_nav.active == 'admin_users' %}
+        {% set resolvedShellBreadcrumbs = [
+          { label: 'Deskhelper', url: app_url('app') },
+          { label: 'Admin' }
+        ] %}
+      {% elseif deskhelper_nav.active == 'admin_categories' %}
+        {% set resolvedShellBreadcrumbs = [
+          { label: 'Deskhelper', url: app_url('app') },
+          { label: 'Admin' }
+        ] %}
+      {% elseif deskhelper_nav.active == 'guide' %}
+        {% set resolvedShellBreadcrumbs = [
+          { label: 'Deskhelper', url: app_url('app') },
+          { label: 'Guia do usuário' }
+        ] %}
+      {% elseif deskhelper_nav.active == 'faq' %}
+        {% set resolvedShellBreadcrumbs = [
+          { label: 'Deskhelper', url: app_url('app') },
+          { label: 'FAQ' }
+        ] %}
+      {% else %}
+        {% set resolvedShellBreadcrumbs = [
+          { label: 'Deskhelper', url: app_url('app') },
+          { label: resolvedShellTitle }
+        ] %}
+      {% endif %}
+      {% include 'components/dashboard-content-header.twig' with {
+        breadcrumbs: resolvedShellBreadcrumbs,
+        title: resolvedShellTitle,
+        subtitle: resolvedShellSubtitle
+      } %}
+
+      {% block deskhelper_main %}{% endblock %}
+
+      {% include 'components/dashboard-footer.twig' with {
+        lastUpdated: "now"|date("d/m/Y H:i")
+      } %}
+    </div>
+  </main>
+</div>
+{% endblock %}

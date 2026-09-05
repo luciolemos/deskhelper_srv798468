@@ -1,0 +1,540 @@
+{% extends 'layouts/deskhelper-dashboard.twig' %}
+
+{% block title %}Minha conta | Deskhelper{% endblock %}
+
+{% block head %}
+  <style>
+    .dh-account-grid {
+      display: grid;
+      gap: 20px;
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .dh-account-top-grid {
+      display: grid;
+      gap: 20px;
+      grid-template-columns: minmax(0, 1.35fr) minmax(320px, .9fr);
+      align-items: start;
+    }
+    .dh-account-identity {
+      display: grid;
+      gap: 16px;
+      justify-items: start;
+    }
+    .dh-account-avatar {
+      position: relative;
+      overflow: hidden;
+      width: 84px;
+      height: 108px;
+      border-radius: 8px;
+      background: linear-gradient(135deg, rgba(79, 103, 47, 0.16), rgba(165, 111, 17, 0.22));
+      color: #31461f;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      font-weight: 800;
+    }
+    .dh-account-avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+    .dh-account-title {
+      display: grid;
+      gap: 6px;
+    }
+    .dh-account-title h2,
+    .dh-account-title p {
+      margin: 0;
+    }
+    .dh-account-title p {
+      color: rgba(27, 38, 24, 0.72);
+    }
+    .dh-account-summary {
+      display: grid;
+      gap: 18px;
+      grid-template-columns: minmax(0, 1fr);
+      align-items: start;
+      margin-bottom: 18px;
+    }
+    .dh-account-summary-card {
+      display: grid;
+      gap: 14px;
+      padding: 16px;
+      border-radius: 18px;
+      background: linear-gradient(180deg, rgba(247,249,244,.96), rgba(255,255,255,.98));
+      border: 1px solid rgba(0,0,0,.06);
+    }
+    .dh-account-role-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .dh-account-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    .dh-account-table th,
+    .dh-account-table td {
+      padding: 12px 10px;
+      border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+      text-align: left;
+      vertical-align: top;
+    }
+    .dh-account-table th {
+      width: 34%;
+      font-size: .76rem;
+      font-weight: 800;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      color: rgba(27, 38, 24, 0.72);
+    }
+    .dh-account-table td {
+      font-size: .94rem;
+      overflow-wrap: anywhere;
+      word-break: break-word;
+    }
+    .dh-account-form {
+      display: grid;
+      gap: 16px;
+      padding: 18px;
+      border-radius: 18px;
+      background: linear-gradient(180deg, rgba(247,249,244,.96), rgba(255,255,255,.98));
+      border: 1px solid rgba(0,0,0,.06);
+    }
+    .dh-account-form-grid {
+      display: grid;
+      gap: 14px;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .dh-account-form label,
+    .dh-account-form .db-password-field {
+      display: grid;
+      gap: 8px;
+    }
+    .dh-account-form span {
+      font-size: .76rem;
+      font-weight: 800;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      color: rgba(27, 38, 24, 0.72);
+    }
+    .dh-account-form input {
+      min-height: 42px;
+      border-radius: 12px;
+      border: 1px solid color-mix(in srgb, var(--accent) 14%, var(--border));
+      background: rgba(255,255,255,.94);
+      color: var(--text);
+      padding: 0 .9rem;
+      font: inherit;
+      transition: border-color 140ms ease, box-shadow 140ms ease, background-color 140ms ease;
+    }
+    .dh-account-form input:focus {
+      outline: none;
+      border-color: color-mix(in srgb, var(--accent) 44%, var(--border));
+      box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 12%, transparent);
+      background: #ffffff;
+    }
+    .dh-account-upload {
+      display: grid;
+      gap: 8px;
+    }
+    .dh-account-upload-shell {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .dh-account-form label.dh-account-upload-trigger {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      justify-content: flex-start;
+      flex-wrap: nowrap;
+      gap: 8px;
+      min-height: 38px;
+      min-width: 220px;
+      padding: 0 .85rem;
+      border-radius: 12px;
+      border: 1px solid color-mix(in srgb, var(--accent) 18%, var(--border));
+      background: rgba(255,255,255,.92);
+      color: var(--text);
+      font-size: .86rem;
+      font-weight: 700;
+      cursor: pointer;
+      width: 220px;
+      max-width: none;
+      white-space: nowrap;
+      transition: border-color 140ms ease, box-shadow 140ms ease, background-color 140ms ease;
+    }
+    .dh-account-upload-trigger:focus-within {
+      outline: none;
+      border-color: color-mix(in srgb, var(--accent) 44%, var(--border));
+      box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 12%, transparent);
+      background: #ffffff;
+    }
+    .dh-account-upload-trigger:hover {
+      border-color: color-mix(in srgb, var(--accent) 34%, var(--border));
+      background: #ffffff;
+    }
+    .dh-account-upload-trigger i {
+      font-size: 1rem;
+    }
+    .dh-account-upload-label {
+      display: inline-block;
+      font-size: .78rem;
+      line-height: 1.1;
+      font-weight: 600;
+      letter-spacing: normal;
+      text-transform: none;
+      color: var(--text);
+      white-space: nowrap;
+    }
+    .dh-account-upload-trigger input {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+    .dh-account-upload-name {
+      font-size: .88rem;
+      color: rgba(27, 38, 24, 0.72);
+      min-height: 1.35rem;
+      overflow-wrap: anywhere;
+      line-height: 1.3;
+      flex: 1 1 220px;
+    }
+    .dh-account-upload-preview {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    .dh-account-upload-preview-avatar {
+      position: relative;
+      overflow: hidden;
+      width: clamp(6.5rem, 14vw, 8.5rem);
+      height: clamp(6.5rem, 14vw, 8.5rem);
+      flex: 0 0 auto;
+      border-radius: 999px;
+      background: linear-gradient(135deg, rgba(79, 103, 47, 0.16), rgba(165, 111, 17, 0.22));
+      color: #31461f;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      font-weight: 800;
+      border: 1px solid rgba(0,0,0,.08);
+      box-shadow: 0 10px 20px rgba(19, 31, 14, 0.06);
+      background-clip: padding-box;
+    }
+    .dh-account-upload-preview img {
+      width: clamp(6.5rem, 14vw, 8.5rem);
+      height: clamp(6.5rem, 14vw, 8.5rem);
+      border-radius: 999px;
+      object-fit: cover;
+      border: 1px solid rgba(0,0,0,.08);
+      box-shadow: 0 10px 20px rgba(19, 31, 14, 0.06);
+      background: #ffffff;
+    }
+    .dh-account-upload-preview span {
+      font-size: .82rem;
+      font-weight: 700;
+      letter-spacing: .04em;
+      text-transform: uppercase;
+      color: rgba(27, 38, 24, 0.72);
+    }
+    .dh-account-form-help {
+      margin: 0;
+      color: rgba(27, 38, 24, 0.72);
+      font-size: .88rem;
+      line-height: 1.5;
+    }
+    .dh-account-side-stack {
+      display: grid;
+      gap: 20px;
+    }
+    .dh-account-form--compact {
+      gap: 14px;
+      padding: 16px;
+    }
+    @media (max-width: 920px) {
+      .dh-account-top-grid {
+        grid-template-columns: 1fr;
+      }
+      .dh-account-summary { grid-template-columns: 1fr; }
+      .dh-account-form-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      var phoneInput = document.querySelector('input[name="phone"]');
+      var avatarInput = document.querySelector('[data-account-avatar-input]');
+      var avatarPreviews = Array.prototype.slice.call(document.querySelectorAll('[data-account-avatar-preview]'));
+      var avatarFileName = document.querySelector('[data-account-avatar-file-name]');
+
+      var formatPhone = function (value) {
+        var digits = String(value || '').replace(/\D+/g, '').slice(0, 11);
+        if (digits.length <= 2) {
+          return digits;
+        }
+        if (digits.length <= 6) {
+          return '(' + digits.slice(0, 2) + ') ' + digits.slice(2);
+        }
+        if (digits.length <= 10) {
+          return '(' + digits.slice(0, 2) + ') ' + digits.slice(2, 6) + '-' + digits.slice(6);
+        }
+
+        return '(' + digits.slice(0, 2) + ') ' + digits.slice(2, 7) + '-' + digits.slice(7);
+      };
+
+      var syncPhoneMask = function () {
+        phoneInput.value = formatPhone(phoneInput.value);
+      };
+
+      if (phoneInput) {
+        phoneInput.addEventListener('input', syncPhoneMask);
+        phoneInput.addEventListener('blur', syncPhoneMask);
+        syncPhoneMask();
+      }
+
+      if (avatarInput) {
+        avatarInput.addEventListener('change', function () {
+          var selectedFile = avatarInput.files && avatarInput.files[0] ? avatarInput.files[0] : null;
+          if (!selectedFile) {
+            return;
+          }
+
+          if (avatarFileName) {
+            avatarFileName.textContent = selectedFile.name;
+          }
+
+          if (typeof FileReader === 'function') {
+            var reader = new FileReader();
+            reader.onload = function () {
+              if (typeof reader.result === 'string' && reader.result !== '') {
+                avatarPreviews = avatarPreviews.map(function (previewNode) {
+                  if (!(previewNode instanceof HTMLImageElement)) {
+                    var previewImage = document.createElement('img');
+                    previewImage.setAttribute('alt', 'Pré-visualização da foto do usuário');
+                    previewImage.setAttribute('loading', 'lazy');
+                    previewImage.setAttribute('data-account-avatar-preview', '');
+                    previewNode.replaceWith(previewImage);
+                    previewNode = previewImage;
+                  }
+
+                  previewNode.src = reader.result;
+                  return previewNode;
+                });
+              }
+            };
+            reader.readAsDataURL(selectedFile);
+          }
+        });
+      }
+    });
+  </script>
+{% endblock %}
+
+{% block deskhelper_shell_title %}Minha conta{% endblock %}
+{% block deskhelper_shell_subtitle %}Consulte seus dados cadastrais e o perfil de acesso associado ao deskhelper.{% endblock %}
+
+{% block deskhelper_main %}
+  {% set roleLabels = {
+    'user': 'Usuário',
+    'operator': 'Operador',
+    'admin': 'Administrador'
+  } %}
+  {% set statusLabels = {
+    'active': 'Ativa',
+    'disabled': 'Desativada',
+    'pending': 'Pendente',
+    'rejected': 'Rejeitada'
+  } %}
+  <div class="dh-account-grid">
+    <div class="dh-account-top-grid">
+      <article class="db-card">
+        <div class="db-card-body">
+          <span class="db-card-badge">Dados cadastrais</span>
+          <div class="dh-account-summary">
+            <form class="dh-account-form" method="post" action="{{ app_url('account/avatar') }}" enctype="multipart/form-data" hx-boost="false">
+              <input type="hidden" name="csrf_token" value="{{ csrfToken|default('') }}">
+              <div class="dh-account-role-list">
+                {% for role in accountRoles %}
+                  {% include 'components/deskhelper-role-pill.twig' with { role: role } %}
+                {% else %}
+                  <span class="dh-pill">Sem perfil</span>
+                {% endfor %}
+              </div>
+              <div class="dh-account-upload-preview">
+                <span class="dh-account-upload-preview-avatar" aria-hidden="true">
+                  {% if accountUser.avatar_path|default('') %}
+                    <img
+                      src="{{ accountAvatarUrl }}"
+                      alt="Pré-visualização da foto do usuário"
+                      loading="lazy"
+                      data-account-avatar-preview
+                    >
+                  {% else %}
+                    <span data-account-avatar-preview>{{ accountUser.name|default('U')|slice(0, 1)|upper }}</span>
+                  {% endif %}
+                </span>
+                <div class="dh-account-upload-shell">
+                  <label class="dh-account-upload-trigger">
+                    <i class="bi bi-image" aria-hidden="true"></i>
+                    <span class="dh-account-upload-label">Selecionar nova foto</span>
+                    <input
+                      type="file"
+                      name="avatar_upload"
+                      accept=".png,.jpg,.jpeg,.webp,image/png,image/jpeg,image/webp"
+                      data-account-avatar-input
+                      required
+                    >
+                  </label>
+                  <div class="dh-account-upload-name" data-account-avatar-file-name>
+                    Nenhum arquivo selecionado.
+                  </div>
+                </div>
+              </div>
+              <div class="dh-account-upload">
+                <p class="dh-account-form-help">Use PNG, JPG, JPEG ou WEBP com até 2MB.</p>
+              </div>
+              <div class="db-contact-actions">
+                <button class="db-card-link" type="submit">Salvar foto</button>
+              </div>
+            </form>
+          </div>
+          <table class="dh-account-table">
+            <tbody>
+              <tr>
+                <th>Posto/Graduação</th>
+                <td>{{ accountUser.rank|default('-') }}</td>
+              </tr>
+              <tr>
+              <th>Nome de guerra</th>
+                <td>{{ accountUser.name|default('-') }}</td>
+              </tr>
+              <tr>
+                <th>SU</th>
+                <td>{{ accountUser.sector|default('-') }}</td>
+              </tr>
+              <tr>
+                <th>Telefone</th>
+                <td>{{ accountUser.phone|default('-') }}</td>
+              </tr>
+              <tr>
+                <th>E-mail</th>
+                <td>{{ accountUser.email|default('-') }}</td>
+              </tr>
+              <tr>
+                <th>Status da conta</th>
+                <td>{{ statusLabels[accountUser.status|default('active')]|default(accountUser.status|default('-')) }}</td>
+              </tr>
+              <tr>
+                <th>Aprovada em</th>
+                <td>{{ accountUser.approved_at|default('-') }}</td>
+              </tr>
+              <tr>
+                <th>Cadastrada em</th>
+                <td>{{ accountUser.created_at|default('-') }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </article>
+
+      <div class="dh-account-side-stack">
+        <article class="db-card">
+          <div class="db-card-body">
+            <span class="db-card-badge">Alterar e-mail</span>
+            <form class="dh-account-form dh-account-form--compact" method="post" action="{{ app_url('account/email') }}" hx-boost="false">
+              <input type="hidden" name="csrf_token" value="{{ csrfToken|default('') }}">
+              <label>
+                <span>E-mail de acesso</span>
+                <input type="email" name="email" value="{{ accountUser.email|default('') }}" maxlength="160" autocomplete="email" required>
+              </label>
+              <div class="db-password-field">
+                <label for="deskhelper-account-password-1"><span>Senha atual</span></label>
+                <span class="db-password-wrap">
+                  <input id="deskhelper-account-password-1" class="db-form-input" type="password" name="current_password" autocomplete="current-password" data-password-input required>
+                  <button type="button" class="db-password-toggle" data-password-toggle data-password-toggle-icon aria-pressed="false" aria-label="Mostrar senha" title="Mostrar senha">
+                    <i class="bi bi-eye" aria-hidden="true"></i>
+                  </button>
+                </span>
+              </div>
+              <p class="dh-account-form-help">O e-mail é usado para entrar no Deskhelper.</p>
+              <div class="db-contact-actions">
+                <button class="db-card-link" type="submit">Salvar e-mail</button>
+              </div>
+            </form>
+          </div>
+        </article>
+
+        <article class="db-card">
+          <div class="db-card-body">
+            <span class="db-card-badge">Atualizar telefone</span>
+            <form class="dh-account-form dh-account-form--compact" method="post" action="{{ app_url('account/phone') }}" hx-boost="false">
+              <input type="hidden" name="csrf_token" value="{{ csrfToken|default('') }}">
+              <label>
+                <span>Telefone</span>
+                <input type="text" name="phone" value="{{ accountUser.phone|default('') }}" inputmode="tel" pattern="[\d\s()+-]{10,40}" maxlength="20" required>
+              </label>
+              <p class="dh-account-form-help">Use o mesmo padrão do cadastro. Ex.: (67) 99999-9999.</p>
+              <div class="db-contact-actions">
+                <button class="db-card-link" type="submit">Salvar telefone</button>
+              </div>
+            </form>
+          </div>
+        </article>
+
+        <article class="db-card">
+          <div class="db-card-body">
+            <span class="db-card-badge">Alterar senha</span>
+            <form class="dh-account-form dh-account-form--compact" method="post" action="{{ app_url('account/password') }}" hx-boost="false">
+              <input type="hidden" name="csrf_token" value="{{ csrfToken|default('') }}">
+              <div class="db-password-field">
+                <label for="deskhelper-account-password-2"><span>Senha atual</span></label>
+                <span class="db-password-wrap">
+                  <input id="deskhelper-account-password-2" class="db-form-input" type="password" name="current_password" autocomplete="current-password" data-password-input required>
+                  <button type="button" class="db-password-toggle" data-password-toggle data-password-toggle-icon aria-pressed="false" aria-label="Mostrar senha" title="Mostrar senha">
+                    <i class="bi bi-eye" aria-hidden="true"></i>
+                  </button>
+                </span>
+              </div>
+              <div class="db-password-field">
+                <label for="deskhelper-account-password-3"><span>Nova senha</span></label>
+                <span class="db-password-wrap">
+                  <input id="deskhelper-account-password-3" class="db-form-input" type="password" name="new_password" autocomplete="new-password" minlength="8" data-password-input required>
+                  <button type="button" class="db-password-toggle" data-password-toggle data-password-toggle-icon aria-pressed="false" aria-label="Mostrar senha" title="Mostrar senha">
+                    <i class="bi bi-eye" aria-hidden="true"></i>
+                  </button>
+                </span>
+              </div>
+              <div class="db-password-field">
+                <label for="deskhelper-account-password-4"><span>Confirmar nova senha</span></label>
+                <span class="db-password-wrap">
+                  <input id="deskhelper-account-password-4" class="db-form-input" type="password" name="confirm_password" autocomplete="new-password" minlength="8" data-password-input required>
+                  <button type="button" class="db-password-toggle" data-password-toggle data-password-toggle-icon aria-pressed="false" aria-label="Mostrar senha" title="Mostrar senha">
+                    <i class="bi bi-eye" aria-hidden="true"></i>
+                  </button>
+                </span>
+              </div>
+              <p class="dh-account-form-help">A nova senha deve ter pelo menos 8 caracteres.</p>
+              <div class="db-contact-actions">
+                <button class="db-card-link" type="submit">Salvar senha</button>
+              </div>
+            </form>
+          </div>
+        </article>
+      </div>
+    </div>
+  </div>
+{% endblock %}

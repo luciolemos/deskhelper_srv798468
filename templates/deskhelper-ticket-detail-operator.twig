@@ -1,0 +1,496 @@
+{% extends 'layouts/deskhelper-dashboard.twig' %}
+
+{% block title %}Ticket #{{ ticket.id }} Operator | Deskhelper{% endblock %}
+
+{% block head %}
+  <style>
+    .dh-stream-item { padding:14px 0; border-bottom:1px solid rgba(0,0,0,.08); }
+    .dh-stream-item:last-child { border-bottom:0; }
+    .dh-detail-overview {
+      margin-top: 28px;
+    }
+    .dh-detail-overview-head {
+      display: grid;
+      gap: 14px;
+    }
+    .dh-detail-overview-head h2,
+    .dh-detail-overview-head p {
+      margin: 0;
+    }
+    .dh-detail-overview-head p {
+      color: rgba(27, 38, 24, 0.78);
+      line-height: 1.7;
+    }
+    .dh-detail-overview-grid {
+      display: grid;
+      gap: 16px;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      margin-top: 20px;
+    }
+    .dh-detail-overview-item {
+      display: grid;
+      gap: 6px;
+      padding: 14px 16px;
+      border-radius: 16px;
+      background: linear-gradient(180deg, rgba(247,249,244,.9), rgba(255,255,255,.98));
+      border: 1px solid rgba(0,0,0,.06);
+      min-width: 0;
+    }
+    .dh-detail-overview-label {
+      font-size: .74rem;
+      font-weight: 800;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      color: rgba(27, 38, 24, 0.68);
+    }
+    .dh-detail-overview-value {
+      font-size: .98rem;
+      font-weight: 700;
+      color: var(--text);
+      line-height: 1.35;
+      overflow-wrap: anywhere;
+    }
+    .dh-ticket-chat {
+      display: grid;
+      gap: 14px;
+    }
+    .dh-ticket-chat-item {
+      display: grid;
+      gap: 6px;
+      justify-items: start;
+    }
+    .dh-ticket-chat-meta {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      font-size: .82rem;
+      color: rgba(27, 38, 24, 0.68);
+      line-height: 1.4;
+    }
+    .dh-ticket-chat-author {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+    }
+    .dh-ticket-chat-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 999px;
+      overflow: hidden;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex: 0 0 40px;
+      background: linear-gradient(135deg, rgba(79, 103, 47, 0.16), rgba(165, 111, 17, 0.22));
+      color: #31461f;
+      font-size: .85rem;
+      font-weight: 800;
+    }
+    .dh-ticket-chat-avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+    .dh-ticket-chat-bubble {
+      max-width: min(100%, 560px);
+      padding: 12px 14px;
+      border-radius: 18px 18px 18px 8px;
+      background: rgba(244, 247, 240, 0.96);
+      border: 1px solid rgba(49, 70, 31, 0.08);
+      color: var(--text);
+      line-height: 1.65;
+      box-shadow: 0 10px 20px rgba(19, 31, 14, 0.04);
+      overflow-wrap: anywhere;
+    }
+    .dh-ticket-chat-item.is-admin .dh-ticket-chat-bubble {
+      background: rgba(245, 239, 228, 0.98);
+      border-color: rgba(165, 111, 17, 0.24);
+    }
+    .dh-ticket-chat-item.is-operator .dh-ticket-chat-bubble {
+      background: rgba(236, 244, 233, 0.98);
+      border-color: rgba(79, 103, 47, 0.22);
+    }
+    .dh-ticket-chat-item.is-user .dh-ticket-chat-bubble {
+      background: rgba(235, 241, 247, 0.98);
+      border-color: rgba(53, 92, 140, 0.18);
+    }
+    .dh-detail-summary-grid { display:grid; gap:18px; grid-template-columns:repeat(3, minmax(0, 1fr)); margin-top:28px; }
+    .dh-detail-summary-grid .dh-kpi-card__title,
+    .dh-detail-summary-grid .dh-kpi-card__subtitle {
+      overflow-wrap: anywhere;
+      word-break: break-word;
+    }
+    .dh-detail-summary-grid .dh-kpi-card__value {
+      width: 100%;
+      padding-left: 0;
+      text-align: left;
+      justify-self: start;
+      white-space: normal;
+      overflow-wrap: anywhere;
+      word-break: break-word;
+      text-transform: none;
+      letter-spacing: -0.03em;
+      font-size: clamp(1.25rem, 2vw, 1.9rem);
+      line-height: 1.05;
+    }
+    .dh-detail-summary-grid .dh-kpi-card__value.dh-ticket-kpi-value--text {
+      font-size: clamp(1rem, 1.2vw, 1.2rem);
+      line-height: 1.25;
+      letter-spacing: -0.01em;
+    }
+    .dh-detail-toolbar { margin-top:28px; }
+    .dh-detail-section { margin-top:28px; }
+    .dh-detail-main-layout {
+      display: grid;
+      gap: 28px;
+      grid-template-columns: minmax(0, 1.1fr) minmax(300px, 0.9fr);
+      align-items: start;
+    }
+    .dh-detail-side-stack {
+      display: grid;
+      gap: 28px;
+    }
+    .dh-detail-panel-stack {
+      display: grid;
+      gap: 24px;
+    }
+    .dh-detail-panel-stack > section + section {
+      padding-top: 20px;
+      border-top: 1px solid rgba(0, 0, 0, 0.08);
+    }
+    .dh-detail-column > .db-card-badge + .db-card-title {
+      margin-top: 0;
+    }
+    .dh-detail-form {
+      display:grid;
+      gap:16px;
+      padding:18px;
+      border-radius:18px;
+      background:linear-gradient(180deg, rgba(247,249,244,.96), rgba(255,255,255,.98));
+      border:1px solid rgba(0,0,0,.06);
+    }
+    .dh-detail-form label { display:grid; gap:8px; }
+    .dh-detail-form span { font-size:.76rem; font-weight:800; letter-spacing:.06em; text-transform:uppercase; color:rgba(27,38,24,.72); }
+    .dh-detail-form select,
+    .dh-detail-form textarea {
+      min-height:42px;
+      border-radius:12px;
+      border:1px solid color-mix(in srgb, var(--accent) 14%, var(--border));
+      background:rgba(255,255,255,.94);
+      color:var(--text);
+      padding:.75rem .9rem;
+      font:inherit;
+      transition:border-color 140ms ease, box-shadow 140ms ease, background-color 140ms ease;
+    }
+    .dh-detail-form textarea { min-height:140px; line-height:1.55; resize:vertical; }
+    .dh-detail-form select:focus,
+    .dh-detail-form textarea:focus {
+      outline:none;
+      border-color:color-mix(in srgb, var(--accent) 44%, var(--border));
+      box-shadow:0 0 0 4px color-mix(in srgb, var(--accent) 12%, transparent);
+      background:#ffffff;
+    }
+    .dh-detail-table { width:100%; border-collapse:collapse; }
+    .dh-detail-table th,
+    .dh-detail-table td { padding:12px 10px; border-bottom:1px solid rgba(0,0,0,.08); text-align:left; vertical-align:top; }
+    .dh-detail-table th { font-size:.76rem; font-weight:800; letter-spacing:.06em; text-transform:uppercase; color:rgba(27,38,24,.72); }
+    .dh-detail-table td { font-size:.92rem; }
+    .dh-detail-event-name { font-weight:700; }
+    .dh-detail-context-table th { width: 32%; }
+    .dh-detail-activity-grid {
+      display: grid;
+      gap: 20px;
+      grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr);
+    }
+    .dh-detail-split-grid {
+      display: grid;
+      gap: 20px;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 0.92fr);
+    }
+    .dh-detail-column {
+      display: grid;
+      gap: 16px;
+      align-content: start;
+      min-width: 0;
+    }
+    .dh-detail-column + .dh-detail-column {
+      padding-left: 20px;
+      border-left: 1px solid rgba(0, 0, 0, 0.08);
+    }
+    @media (max-width:960px) {
+      .dh-detail-summary-grid { grid-template-columns:1fr; }
+      .dh-detail-overview-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .dh-detail-main-layout { grid-template-columns: 1fr; }
+    }
+    @media (max-width:960px) {
+      .dh-detail-activity-grid {
+        grid-template-columns: 1fr;
+      }
+      .dh-detail-split-grid {
+        grid-template-columns: 1fr;
+      }
+      .dh-detail-column + .dh-detail-column {
+        padding-left: 0;
+        padding-top: 20px;
+        border-left: 0;
+        border-top: 1px solid rgba(0, 0, 0, 0.08);
+      }
+    }
+    @media (max-width:640px) {
+      .dh-detail-overview-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+{% endblock %}
+
+{% block deskhelper_shell_title %}Execução do ticket #{{ ticket.id }}{% endblock %}
+{% block deskhelper_shell_subtitle %}{{ ticket.title }}{% endblock %}
+
+{% block deskhelper_main %}
+  {% set rankShort = {
+    'General de Exército': 'Gen Ex',
+    'General de Divisão': 'Gen Div',
+    'General de Brigada': 'Gen Bda',
+    'Coronel': 'Cel',
+    'Tenente-Coronel': 'Ten Cel',
+    'Major': 'Maj',
+    'Capitão': 'Cap',
+    '1º Tenente': '1º Ten',
+    '2º Tenente': '2º Ten',
+    'Aspirante a Oficial': 'Asp Of',
+    'Subtenente': 'ST',
+    '1º Sargento': '1º Sgt',
+    '2º Sargento': '2º Sgt',
+    '3º Sargento': '3º Sgt',
+    'Cabo': 'Cb',
+    'Soldado': 'Sd'
+  } %}
+  {% set statusLabels = {
+    'open': 'Aberto',
+    'in_progress': 'Em andamento',
+    'resolved': 'Resolvido',
+    'closed': 'Fechado',
+    'cancelled': 'Cancelado'
+  } %}
+  {% set priorityLabels = {
+    'low': 'Baixa',
+    'medium': 'Média',
+    'high': 'Alta'
+  } %}
+  {% set roleLabels = {
+    'admin': 'Administrador',
+    'operator': 'Operador',
+    'user': 'Usuário'
+  } %}
+
+  <div class="db-contact-actions dh-detail-toolbar">
+    <a class="db-card-link db-card-link-secondary" href="{{ app_url('tickets?view=list') }}">Voltar à lista</a>
+  </div>
+
+  <article class="db-card dh-detail-overview">
+    <div class="db-card-body">
+      <span class="db-card-badge">Resumo do ticket</span>
+      <div class="dh-detail-overview-head">
+        <h2 class="db-card-title">{{ ticket.title }}</h2>
+        <p>{{ ticket.description }}</p>
+      </div>
+      <div class="dh-detail-overview-grid">
+        <div class="dh-detail-overview-item">
+          <span class="dh-detail-overview-label">Status</span>
+          <span class="dh-detail-overview-value">{{ statusLabels[ticket.status]|default(ticket.status) }}</span>
+        </div>
+        <div class="dh-detail-overview-item">
+          <span class="dh-detail-overview-label">Prioridade</span>
+          <span class="dh-detail-overview-value">{{ priorityLabels[ticket.priority]|default(ticket.priority) }}</span>
+        </div>
+        <div class="dh-detail-overview-item">
+          <span class="dh-detail-overview-label">Categoria</span>
+          <span class="dh-detail-overview-value">{{ ticket.category_label }}</span>
+        </div>
+        <div class="dh-detail-overview-item">
+          <span class="dh-detail-overview-label">Responsável</span>
+          <span class="dh-detail-overview-value">{{ ticket.assigned_to_name|default('Fila aberta') }}</span>
+        </div>
+      </div>
+    </div>
+  </article>
+
+  <section class="dh-detail-main-layout dh-detail-section">
+    <article class="db-card">
+      <div class="db-card-body">
+        <span class="db-card-badge">Comentários</span>
+        <h2 class="db-card-title">Conversa do ticket</h2>
+        {% if ticket.comments is empty %}
+          <p class="db-card-subtitle">Sem comentários até o momento.</p>
+        {% else %}
+          <div class="dh-ticket-chat">
+          {% for comment in ticket.comments %}
+            {% set commentRoleLabel = roleLabels[comment.user_role|default('')] ?? '' %}
+            {% set commentRoleClass = comment.user_role ? ' is-' ~ comment.user_role : '' %}
+            {% set commentIdentity = ([rankShort[comment.user_rank|default('')]|default(comment.user_rank|default('')), comment.user_name|default('')]|join(' ')|trim) %}
+            <div class="dh-ticket-chat-item{{ commentRoleClass }}">
+              <div class="dh-ticket-chat-meta">
+                <span class="dh-ticket-chat-author">
+                  <span class="dh-ticket-chat-avatar" aria-hidden="true">
+                    {% if comment.avatar_path|default('') %}
+                      <img src="{{ asset_base_path }}/assets/img/avatar/{{ comment.avatar_path }}" alt="Foto de {{ comment.user_name }}" loading="lazy">
+                    {% else %}
+                      {{ comment.user_name|default('U')|slice(0, 1)|upper }}
+                    {% endif %}
+                  </span>
+                  <span>
+                    {{ commentIdentity != '' ? commentIdentity : comment.user_name }}
+                    {% if commentRoleLabel %}
+                      ({{ commentRoleLabel }})
+                    {% endif %}
+                  </span>
+                </span>
+                <span>· {{ comment.created_at }}</span>
+              </div>
+              <div class="dh-ticket-chat-bubble">{{ comment.body }}</div>
+            </div>
+          {% endfor %}
+          </div>
+        {% endif %}
+
+        {% if canComment %}
+          <form class="dh-detail-form" method="post" action="{{ app_url('tickets/' ~ ticket.id ~ '/comment') }}" hx-boost="false">
+            <input type="hidden" name="csrf_token" value="{{ csrfToken|default('') }}">
+            <label>
+              <span>Novo comentário</span>
+              <textarea name="body" rows="4" placeholder="Atualize o atendimento com a ação executada, retorno ao usuário ou novo contexto." required></textarea>
+            </label>
+            <div class="db-contact-actions">
+              <button class="db-card-link" type="submit">Comentar</button>
+            </div>
+          </form>
+        {% endif %}
+      </div>
+    </article>
+
+    <aside class="dh-detail-side-stack">
+      <article class="db-card">
+        <div class="db-card-body">
+          {% if canManage %}
+            <div class="dh-detail-panel-stack">
+              <section class="dh-detail-column" aria-label="Dados da solicitação">
+                <span class="db-card-badge">Dados</span>
+                <h2 class="db-card-title">Dados da solicitação</h2>
+                <table class="dh-detail-table dh-detail-context-table">
+                  <tbody>
+                    <tr>
+                      <th>Setor</th>
+                      <td>{{ ticket.request_sector|default('-') }}</td>
+                    </tr>
+                    <tr>
+                      <th>Criado por</th>
+                      <td>{{ ticket.created_by_name }}</td>
+                    </tr>
+                    <tr>
+                      <th>Criado em</th>
+                      <td>{{ ticket.created_at }}</td>
+                    </tr>
+                    <tr>
+                      <th>Responsável atual</th>
+                      <td>{{ ticket.assigned_to_name|default('Não atribuído') }}</td>
+                    </tr>
+                    <tr>
+                      <th>Atualizado em</th>
+                      <td>{{ ticket.updated_at }}</td>
+                    </tr>
+                    <tr>
+                      <th>Resolvido em</th>
+                      <td>{{ ticket.resolved_at|default('-') ?: '-' }}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+
+              <section class="dh-detail-column" aria-label="Atualizar atendimento">
+                <h2 class="db-card-title">Atualizar atendimento</h2>
+                <form class="dh-detail-form" method="post" action="{{ app_url('tickets/' ~ ticket.id ~ '/workflow') }}" hx-boost="false">
+                  <input type="hidden" name="csrf_token" value="{{ csrfToken|default('') }}">
+                  <input type="hidden" name="return_to" value="{{ app_url('tickets?view=list') }}">
+                  <label>
+                    <span>Status</span>
+                    <select name="status">
+                      {% for status in ['open', 'in_progress', 'resolved', 'closed', 'cancelled'] %}
+                        <option value="{{ status }}" {{ ticket.status == status ? 'selected' : '' }}>{{ statusLabels[status]|default(status) }}</option>
+                      {% endfor %}
+                    </select>
+                  </label>
+                  <div class="db-contact-actions">
+                    <button class="db-card-link" type="submit">Salvar atendimento</button>
+                  </div>
+                </form>
+              </section>
+            </div>
+          {% else %}
+            <span class="db-card-badge">Dados</span>
+            <h2 class="db-card-title">Dados da solicitação</h2>
+            <table class="dh-detail-table dh-detail-context-table">
+              <tbody>
+                <tr>
+                  <th>Setor</th>
+                  <td>{{ ticket.request_sector|default('-') }}</td>
+                </tr>
+                <tr>
+                  <th>Criado por</th>
+                  <td>{{ ticket.created_by_name }}</td>
+                </tr>
+                <tr>
+                  <th>Criado em</th>
+                  <td>{{ ticket.created_at }}</td>
+                </tr>
+                <tr>
+                  <th>Responsável atual</th>
+                  <td>{{ ticket.assigned_to_name|default('Não atribuído') }}</td>
+                </tr>
+                <tr>
+                  <th>Atualizado em</th>
+                  <td>{{ ticket.updated_at }}</td>
+                </tr>
+                <tr>
+                  <th>Resolvido em</th>
+                  <td>{{ ticket.resolved_at|default('-') ?: '-' }}</td>
+                </tr>
+              </tbody>
+            </table>
+          {% endif %}
+        </div>
+      </article>
+
+      <article class="db-card">
+        <div class="db-card-body">
+          <span class="db-card-badge">Andamento</span>
+          <h2 class="db-card-title">Linha do tempo do ticket</h2>
+          {% if ticket.events is empty %}
+            <p class="db-card-subtitle">Sem eventos registrados.</p>
+          {% else %}
+            <table class="dh-detail-table">
+              <thead>
+                <tr>
+                  <th>Evento</th>
+                  <th>Usuário</th>
+                  <th>Data/hora</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for event in ticket.events %}
+                  <tr>
+                    <td class="dh-detail-event-name">{{ event.event_type|replace({'ticket_created':'Ticket criado','ticket_assigned':'Responsável alterado','status_changed':'Status alterado','comment_added':'Comentário adicionado'}) }}</td>
+                    <td>{{ event.user_name ? ([rankShort[event.user_rank|default('')]|default(event.user_rank|default('')), event.user_name]|join(' ')|trim) : 'Sistema' }}</td>
+                    <td>{{ event.created_at }}</td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          {% endif %}
+        </div>
+      </article>
+    </aside>
+  </section>
+{% endblock %}

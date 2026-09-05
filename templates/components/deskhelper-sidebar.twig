@@ -1,0 +1,121 @@
+<aside
+  id="db-sidebar"
+  class="db-sidebar"
+  data-sidebar
+  aria-label="Menu do deskhelper"
+>
+  <div class="db-sidebar-header">
+    <img
+      class="db-om-logo"
+      src="{{ asset_base_path }}/assets/img/om.png"
+      alt="Deskhelper"
+    >
+    <h1 class="db-brand">Deskhelper</h1>
+    <p class="db-caption">Service Desk Interno</p>
+  </div>
+
+  <nav
+    class="db-menu"
+    aria-label="Navegação do deskhelper"
+    hx-boost="false"
+  >
+    <section class="db-menu-group-block{{ deskhelper_nav.active == 'app' ? ' is-open' : '' }}" data-menu-group data-group-current="{{ deskhelper_nav.active == 'app' ? 'true' : 'false' }}">
+      <button
+        type="button"
+        class="db-menu-group-toggle{{ deskhelper_nav.active == 'app' ? ' is-current' : '' }}"
+        data-menu-group-toggle
+        data-group-key="deskhelper-panel-menu"
+        aria-expanded="{{ deskhelper_nav.active == 'app' ? 'true' : 'false' }}"
+      >
+        <span class="db-menu-group"><i class="bi bi-speedometer2" aria-hidden="true"></i>Dashboard</span>
+        <i class="bi bi-chevron-down" aria-hidden="true"></i>
+      </button>
+      <div class="db-menu-group-items" data-menu-group-items {{ deskhelper_nav.active == 'app' ? '' : 'hidden' }}>
+        {% if deskhelper_session_user.is_admin %}
+          <a href="{{ app_url('app?panel=overview') }}" class="db-menu-item db-menu-subitem{{ deskhelper_nav.active == 'app' and deskhelper_nav.panel in ['', 'overview'] ? ' is-active' : '' }}">Indicadores</a>
+          <a href="{{ app_url('app?panel=actions') }}" class="db-menu-item db-menu-subitem{{ deskhelper_nav.active == 'app' and deskhelper_nav.panel == 'actions' ? ' is-active' : '' }}">Ações</a>
+          <a href="{{ app_url('app?panel=role_summary') }}" class="db-menu-item db-menu-subitem{{ deskhelper_nav.active == 'app' and deskhelper_nav.panel == 'role_summary' ? ' is-active' : '' }}">Perfis</a>
+          <a href="{{ app_url('app?panel=category_summary') }}" class="db-menu-item db-menu-subitem{{ deskhelper_nav.active == 'app' and deskhelper_nav.panel == 'category_summary' ? ' is-active' : '' }}">Tickets por categoria</a>
+          <a href="{{ app_url('app?panel=assignment_summary') }}" class="db-menu-item db-menu-subitem{{ deskhelper_nav.active == 'app' and deskhelper_nav.panel == 'assignment_summary' ? ' is-active' : '' }}">Responsáveis</a>
+          <a href="{{ app_url('app?panel=backlog') }}" class="db-menu-item db-menu-subitem{{ deskhelper_nav.active == 'app' and deskhelper_nav.panel == 'backlog' ? ' is-active' : '' }}">Backlog</a>
+        {% elseif deskhelper_session_user.is_operator and not deskhelper_session_user.is_admin %}
+          <a href="{{ app_url('app?panel=overview') }}" class="db-menu-item db-menu-subitem{{ deskhelper_nav.active == 'app' and deskhelper_nav.panel in ['', 'overview'] ? ' is-active' : '' }}">Indicadores</a>
+          <a href="{{ app_url('app?panel=actions') }}" class="db-menu-item db-menu-subitem{{ deskhelper_nav.active == 'app' and deskhelper_nav.panel == 'actions' ? ' is-active' : '' }}">Ações</a>
+          <a href="{{ app_url('app?panel=category_summary') }}" class="db-menu-item db-menu-subitem{{ deskhelper_nav.active == 'app' and deskhelper_nav.panel == 'category_summary' ? ' is-active' : '' }}">Categorias</a>
+          <a href="{{ app_url('app?panel=recent') }}" class="db-menu-item db-menu-subitem{{ deskhelper_nav.active == 'app' and deskhelper_nav.panel == 'recent' ? ' is-active' : '' }}">Recentes</a>
+        {% else %}
+          <a href="{{ app_url('app') }}" class="db-menu-item db-menu-subitem{{ deskhelper_nav.active == 'app' and deskhelper_nav.panel in ['', 'overview'] ? ' is-active' : '' }}">Visão geral</a>
+        {% endif %}
+      </div>
+    </section>
+    <span class="db-menu-divider" aria-hidden="true"></span>
+    <section class="db-menu-group-block{{ deskhelper_nav.active == 'tickets' ? ' is-open' : '' }}" data-menu-group data-group-current="{{ deskhelper_nav.active == 'tickets' ? 'true' : 'false' }}">
+      <button
+        type="button"
+        class="db-menu-group-toggle{{ deskhelper_nav.active == 'tickets' ? ' is-current' : '' }}"
+        data-menu-group-toggle
+        data-group-key="deskhelper-tickets-menu"
+        aria-expanded="{{ deskhelper_nav.active == 'tickets' ? 'true' : 'false' }}"
+      >
+        <span class="db-menu-group"><i class="bi bi-inboxes" aria-hidden="true"></i>{{ deskhelper_session_user.is_operator and not deskhelper_session_user.is_admin ? 'Fila' : 'Tickets' }}</span>
+        <i class="bi bi-chevron-down" aria-hidden="true"></i>
+      </button>
+      <div class="db-menu-group-items" data-menu-group-items {{ deskhelper_nav.active == 'tickets' ? '' : 'hidden' }}>
+        <a href="{{ app_url('tickets?view=indicators') }}" class="db-menu-item db-menu-subitem{{ deskhelper_nav.active == 'tickets' and not deskhelper_nav.ticket_detail and deskhelper_nav.tickets_view in ['', 'indicators'] ? ' is-active' : '' }}">Indicadores</a>
+        <a href="{{ app_url('tickets?view=list') }}" class="db-menu-item db-menu-subitem{{ deskhelper_nav.active == 'tickets' and not deskhelper_nav.ticket_detail and deskhelper_nav.tickets_view == 'list' and deskhelper_nav.tickets_status != 'open' ? ' is-active' : '' }}">Lista</a>
+        {% if not (deskhelper_session_user.is_operator and not deskhelper_session_user.is_admin) %}
+          <a href="{{ app_url('tickets?view=list&status=open') }}" class="db-menu-item db-menu-subitem{{ deskhelper_nav.active == 'tickets' and not deskhelper_nav.ticket_detail and deskhelper_nav.tickets_view == 'list' and deskhelper_nav.tickets_status == 'open' ? ' is-active' : '' }}">Fila aberta</a>
+        {% endif %}
+      </div>
+    </section>
+    <span class="db-menu-divider" aria-hidden="true"></span>
+    <a href="{{ app_url('tickets/new') }}" class="db-menu-item db-menu-item-primary{{ deskhelper_nav.active == 'tickets_new' ? ' is-active' : '' }}">
+      <i class="bi bi-plus-square" aria-hidden="true"></i>
+      <span>NOVO TICKET</span>
+    </a>
+    <span class="db-menu-divider" aria-hidden="true"></span>
+    <a href="{{ app_url('guide') }}" class="db-menu-item db-menu-item-primary{{ deskhelper_nav.active == 'guide' ? ' is-active' : '' }}">
+      <i class="bi bi-journal-text" aria-hidden="true"></i>
+      <span>GUIA DO USUÁRIO</span>
+    </a>
+    <span class="db-menu-divider" aria-hidden="true"></span>
+    <a href="{{ app_url('help') }}" class="db-menu-item db-menu-item-primary{{ deskhelper_nav.active == 'faq' ? ' is-active' : '' }}">
+      <i class="bi bi-question-circle" aria-hidden="true"></i>
+      <span>FAQ</span>
+    </a>
+
+    {% if deskhelper_session_user.is_admin %}
+      <span class="db-menu-divider" aria-hidden="true"></span>
+      <section class="db-menu-group-block" data-menu-group>
+        <button
+          type="button"
+          class="db-menu-group-toggle{{ deskhelper_nav.active in ['admin_pending', 'admin_users', 'admin_categories'] ? ' is-current' : '' }}"
+          data-menu-group-toggle
+          data-group-key="deskhelper-admin-menu"
+          aria-expanded="{{ deskhelper_nav.active in ['admin_pending', 'admin_users', 'admin_categories'] ? 'true' : 'false' }}"
+          data-group-current="{{ deskhelper_nav.active in ['admin_pending', 'admin_users', 'admin_categories'] ? 'true' : 'false' }}"
+        >
+          <span class="db-menu-group"><i class="bi bi-shield-lock" aria-hidden="true"></i>Admin</span>
+          <i class="bi bi-chevron-down" aria-hidden="true"></i>
+        </button>
+        <div class="db-menu-group-items" data-menu-group-items {{ deskhelper_nav.active in ['admin_pending', 'admin_users', 'admin_categories'] ? '' : 'hidden' }}>
+          <a href="{{ app_url('admin/users/pending?view=indicators') }}" class="db-menu-item db-menu-subitem{{ deskhelper_nav.active == 'admin_pending' and deskhelper_nav.admin_view in ['', 'indicators'] ? ' is-active' : '' }}">Usuários pendentes · Indicadores</a>
+          <a href="{{ app_url('admin/users/pending?view=list') }}" class="db-menu-item db-menu-subitem{{ deskhelper_nav.active == 'admin_pending' and deskhelper_nav.admin_view == 'list' ? ' is-active' : '' }}">Usuários pendentes · Lista</a>
+          <a href="{{ app_url('admin/users?view=indicators') }}" class="db-menu-item db-menu-subitem{{ deskhelper_nav.active == 'admin_users' and deskhelper_nav.admin_view in ['', 'indicators'] ? ' is-active' : '' }}">Usuários do Deskhelper · Indicadores</a>
+          <a href="{{ app_url('admin/users?view=list') }}" class="db-menu-item db-menu-subitem{{ deskhelper_nav.active == 'admin_users' and deskhelper_nav.admin_view == 'list' ? ' is-active' : '' }}">Usuários do Deskhelper · Lista</a>
+          <a href="{{ app_url('admin/categories?view=indicators') }}" class="db-menu-item db-menu-subitem{{ deskhelper_nav.active == 'admin_categories' and deskhelper_nav.admin_view in ['', 'indicators'] ? ' is-active' : '' }}">Categorias de solicitação · Indicadores</a>
+          <a href="{{ app_url('admin/categories?view=list') }}" class="db-menu-item db-menu-subitem{{ deskhelper_nav.active == 'admin_categories' and deskhelper_nav.admin_view == 'list' ? ' is-active' : '' }}">Categorias de solicitação · Lista</a>
+        </div>
+      </section>
+    {% endif %}
+
+    <span class="db-menu-divider" aria-hidden="true"></span>
+    <form method="post" action="{{ app_url('logout') }}" hx-boost="false" class="db-menu-form">
+      <input type="hidden" name="csrf_token" value="{{ csrfToken|default('') }}">
+      <button class="db-menu-item db-menu-item-primary" type="submit" data-sidebar-logout>
+        <i class="bi bi-box-arrow-right" aria-hidden="true"></i>
+        <span>SAIR</span>
+      </button>
+    </form>
+  </nav>
+</aside>

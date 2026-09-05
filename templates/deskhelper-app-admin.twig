@@ -1,0 +1,300 @@
+{% extends 'layouts/deskhelper-dashboard.twig' %}
+
+{% block title %}Dashboard Admin | Deskhelper{% endblock %}
+
+{% block head %}
+  <style>
+    .dh-hero { display:grid; gap:18px; grid-template-columns:1.4fr .8fr; align-items:start; }
+    .dh-kpi { border:1px solid rgba(0,0,0,.08); border-radius:18px; background:linear-gradient(180deg, rgba(255,255,255,.96), rgba(246,243,234,.96)); }
+    .dh-kpi strong { display:block; font-size:2rem; line-height:1; margin-top:10px; }
+    .dh-queue-list, .dh-mini-list { display:grid; gap:12px; }
+    .dh-queue-link, .dh-mini-item { display:flex; align-items:center; justify-content:space-between; gap:14px; padding:14px 16px; border-radius:16px; text-decoration:none; color:inherit; background:rgba(250,247,239,.9); border:1px solid rgba(0,0,0,.06); }
+    .dh-queue-count, .dh-mini-value { min-width:42px; text-align:center; border-radius:999px; padding:6px 10px; font-weight:700; background:rgba(165,111,17,.12); }
+    .dh-muted { opacity:.74; }
+    @media (max-width:900px) {
+      .dh-hero { grid-template-columns:1fr; }
+    }
+    .dh-backlog-filter-grid {
+      grid-template-columns: minmax(0, 1.8fr) minmax(160px, 0.8fr) minmax(170px, 0.9fr) minmax(170px, 0.9fr);
+    }
+  </style>
+{% endblock %}
+
+{% block deskhelper_shell_title %}Dashboard gerencial{% endblock %}
+{% block deskhelper_shell_subtitle %}Visão consolidada do service desk para gestão operacional.{% endblock %}
+
+{% block deskhelper_main %}
+  {% set sortIcons = {
+    'asc': 'bi-caret-up-fill',
+    'desc': 'bi-caret-down-fill'
+  } %}
+  {% set rankShort = {
+    'General de Exército': 'Gen Ex',
+    'General de Divisão': 'Gen Div',
+    'General de Brigada': 'Gen Bda',
+    'Coronel': 'Cel',
+    'Tenente-Coronel': 'Ten Cel',
+    'Major': 'Maj',
+    'Capitão': 'Cap',
+    '1º Tenente': '1º Ten',
+    '2º Tenente': '2º Ten',
+    'Aspirante a Oficial': 'Asp',
+    'Subtenente': 'ST',
+    '1º Sargento': '1º Sgt',
+    '2º Sargento': '2º Sgt',
+    '3º Sargento': '3º Sgt',
+    'Cabo': 'Cb',
+    'Soldado': 'Sd'
+  } %}
+  {% set statusLabels = {
+    'open': 'Aberto',
+    'in_progress': 'Em andamento',
+    'resolved': 'Resolvido',
+    'closed': 'Fechado',
+    'cancelled': 'Cancelado'
+  } %}
+
+  {% if dashboardPanel == 'overview' %}
+    <div class="dh-kpi-grid">
+      <a class="dh-kpi-link" href="{{ app_url('admin/users/pending?view=list') }}">
+        {% include 'components/deskhelper-kpi-card.twig' with { label: 'Usuários pendentes', value: summary.pendingUsers|default(0), subtitle: 'Cadastros aguardando aprovação administrativa' } %}
+      </a>
+      <a class="dh-kpi-link" href="{{ app_url('admin/users?view=list&status=active') }}">
+        {% include 'components/deskhelper-kpi-card.twig' with { label: 'Usuários ativos', value: summary.activeUsers|default(0), subtitle: 'Contas liberadas para uso do ambiente' } %}
+      </a>
+      <a class="dh-kpi-link" href="{{ app_url('admin/users?view=list&status=disabled') }}">
+        {% include 'components/deskhelper-kpi-card.twig' with { label: 'Usuários desativados', value: summary.disabledUsers|default(0), subtitle: 'Contas bloqueadas ou fora de operação' } %}
+      </a>
+    </div>
+
+    <div class="dh-kpi-grid">
+      <a class="dh-kpi-link" href="{{ app_url('tickets?view=list') }}">
+        {% include 'components/deskhelper-kpi-card.twig' with { label: 'Tickets totais', value: summary.totalTickets|default(0), subtitle: 'Base completa de ocorrências registradas' } %}
+      </a>
+      <a class="dh-kpi-link" href="{{ app_url('tickets?view=list&assigned=unassigned') }}">
+        {% include 'components/deskhelper-kpi-card.twig' with { label: 'Não atribuídos', value: summary.unassignedTickets|default(0), subtitle: 'Tickets ainda sem operador responsável' } %}
+      </a>
+      <a class="dh-kpi-link" href="{{ app_url('tickets?view=list&status=open') }}">
+        {% include 'components/deskhelper-kpi-card.twig' with { label: 'Abertos', value: summary.status.open|default(0), subtitle: 'Ocorrências recém-abertas aguardando tratamento' } %}
+      </a>
+    </div>
+
+    <div class="dh-kpi-grid">
+      <a class="dh-kpi-link" href="{{ app_url('tickets?view=list&status=in_progress') }}">
+        {% include 'components/deskhelper-kpi-card.twig' with { label: 'Em andamento', value: summary.status.in_progress|default(0), subtitle: 'Tickets em atendimento no momento' } %}
+      </a>
+      <a class="dh-kpi-link" href="{{ app_url('tickets?view=list&status=resolved') }}">
+        {% include 'components/deskhelper-kpi-card.twig' with { label: 'Resolvidos', value: summary.status.resolved|default(0) + summary.status.closed|default(0), subtitle: 'Ocorrências concluídas tecnicamente' } %}
+      </a>
+      <a class="dh-kpi-link" href="{{ app_url('tickets?view=list&status=cancelled') }}">
+        {% include 'components/deskhelper-kpi-card.twig' with { label: 'Cancelados', value: summary.status.cancelled|default(0), subtitle: 'Tickets encerrados sem continuidade' } %}
+      </a>
+    </div>
+  {% endif %}
+
+  {% if dashboardPanel == 'actions' %}
+  <div class="dh-kpi-grid">
+    <a class="dh-kpi-link" href="{{ app_url('admin/users/pending') }}">
+      {% include 'components/deskhelper-kpi-card.twig' with { label: 'Aprovar cadastros', value: summary.pendingUsers|default(0), subtitle: 'Usuários aguardando liberação' } %}
+    </a>
+    <a class="dh-kpi-link" href="{{ app_url('tickets?status=open') }}">
+      {% include 'components/deskhelper-kpi-card.twig' with { label: 'Fila aberta', value: summary.status.open|default(0), subtitle: 'Tickets aguardando tratamento' } %}
+    </a>
+    <a class="dh-kpi-link" href="{{ app_url('admin/users') }}">
+      {% include 'components/deskhelper-kpi-card.twig' with { label: 'Gerenciar usuários', value: summary.activeUsers|default(0), subtitle: 'Usuários ativos no ambiente' } %}
+    </a>
+    <a class="dh-kpi-link" href="{{ app_url('admin/categories') }}">
+      {% include 'components/deskhelper-kpi-card.twig' with { label: 'Categorias cadastradas', value: summary.totalCategories|default(0), subtitle: 'Categorias disponíveis' } %}
+    </a>
+  </div>
+  {% elseif dashboardPanel == 'role_summary' %}
+  <div class="dh-kpi-grid">
+    <a class="dh-kpi-link" href="{{ app_url('admin/users?view=list&role=admin') }}">
+      {% include 'components/deskhelper-kpi-card.twig' with { label: 'Administradores', value: summary.roleSummary.admin|default(0), subtitle: 'Acesso total ao ambiente e à gestão' } %}
+    </a>
+    <a class="dh-kpi-link" href="{{ app_url('admin/users?view=list&role=operator') }}">
+      {% include 'components/deskhelper-kpi-card.twig' with { label: 'Operadores', value: summary.roleSummary.operator|default(0), subtitle: 'Atuam na fila e tratam ocorrências' } %}
+    </a>
+    <a class="dh-kpi-link" href="{{ app_url('admin/users?view=list&role=user') }}">
+      {% include 'components/deskhelper-kpi-card.twig' with { label: 'Usuários', value: summary.roleSummary.user|default(0), subtitle: 'Abrem e acompanham os próprios tickets' } %}
+    </a>
+  </div>
+  {% elseif dashboardPanel == 'category_summary' %}
+  <div class="dh-kpi-grid">
+    {% for item in summary.categorySummary %}
+      <a class="dh-kpi-link" href="{{ app_url('tickets?view=list&category_id=' ~ item.id) }}">
+        {% include 'components/deskhelper-kpi-card.twig' with {
+          label: item.label,
+          value: item.total,
+          subtitle: item.total == 1 ? '1 ticket nesta categoria no momento' : item.total ~ ' tickets nesta categoria no momento'
+        } %}
+      </a>
+    {% else %}
+      <article class="db-card">
+        <div class="db-card-body">
+          <p class="db-card-subtitle">Sem dados suficientes.</p>
+        </div>
+      </article>
+    {% endfor %}
+  </div>
+  {% elseif dashboardPanel == 'assignment_summary' %}
+  <div class="dh-kpi-grid">
+    {% for item in summary.assignmentSummary %}
+      <a class="dh-kpi-link" href="{{ item.assignee_id ? app_url('app?panel=backlog&assigned_to_user_id=' ~ item.assignee_id) : app_url('tickets?view=list&assigned=unassigned') }}">
+        {% include 'components/deskhelper-kpi-card.twig' with {
+          label: item.assignee_name,
+          value: item.total,
+          subtitle: item.total == 1 ? '1 ticket atribuído no momento' : item.total ~ ' tickets atribuídos no momento'
+        } %}
+      </a>
+    {% else %}
+      <article class="db-card">
+        <div class="db-card-body">
+          <p class="db-card-subtitle">Sem dados suficientes.</p>
+        </div>
+      </article>
+    {% endfor %}
+  </div>
+  {% elseif dashboardPanel == 'backlog' %}
+  <div class="dh-toolbar-inline">
+    <div class="dh-result-summary">{{ summary.recentTickets|length }} ticket(s) no backlog exibido</div>
+  </div>
+
+  <form class="db-contact-form db-admin-filters dh-search-panel" method="get" action="{{ app_url('app') }}">
+    <input type="hidden" name="panel" value="backlog">
+    <div class="dh-search-panel__grid dh-backlog-filter-grid">
+      <label class="dh-search-panel__search">
+        <span class="dh-search-panel__label">Busca</span>
+        <div class="dh-search-panel__input-wrap">
+          <i class="bi bi-search" aria-hidden="true"></i>
+          <input type="text" name="q" value="{{ filters.q|default('') }}" placeholder="Buscar por ID, título, status, prioridade ou categoria">
+        </div>
+      </label>
+      <label class="dh-search-panel__field">
+        <span class="dh-search-panel__label">Status</span>
+        <select name="status">
+          <option value="">Todos</option>
+          {% for status in ['open', 'in_progress', 'resolved', 'closed', 'cancelled'] %}
+            <option value="{{ status }}" {{ filters.status|default('') == status ? 'selected' : '' }}>
+              {{ {
+                'open': 'Aberto',
+                'in_progress': 'Em andamento',
+                'resolved': 'Resolvido',
+                'closed': 'Fechado',
+                'cancelled': 'Cancelado'
+              }[status] }}
+            </option>
+          {% endfor %}
+        </select>
+      </label>
+      <label class="dh-search-panel__field">
+        <span class="dh-search-panel__label">Categoria</span>
+        <select name="category_id">
+          <option value="0">Todas</option>
+          {% for category in categories %}
+            <option value="{{ category.id }}" {{ filters.category_id|default(0) == category.id ? 'selected' : '' }}>{{ category.label }}</option>
+          {% endfor %}
+        </select>
+      </label>
+      <label class="dh-search-panel__field">
+        <span class="dh-search-panel__label">Atribuição</span>
+        <select name="assigned_to_user_id">
+          <option value="0">Todos</option>
+          {% for assignableUser in assignableUsers %}
+            <option value="{{ assignableUser.id }}" {{ filters.assigned_to_user_id|default(0) == assignableUser.id ? 'selected' : '' }}>
+              {{ assignableUser.name }}
+            </option>
+          {% endfor %}
+        </select>
+      </label>
+    </div>
+    <div class="db-contact-actions dh-search-panel__actions">
+      <button class="db-card-link" type="submit">Filtrar</button>
+      <a class="db-card-link db-card-link-secondary" href="{{ app_url('app?panel=backlog') }}">Limpar</a>
+    </div>
+  </form>
+
+  <div class="dh-list-controls">
+    <div class="dh-list-controls__group db-contact-actions">
+      {% include 'components/deskhelper-overview-link.twig' %}
+      <form method="get" action="{{ app_url('app') }}" style="display:inline;">
+        <input type="hidden" name="panel" value="backlog">
+        <input type="hidden" name="q" value="{{ filters.q|default('') }}">
+        <input type="hidden" name="status" value="{{ filters.status|default('') }}">
+        <input type="hidden" name="category_id" value="{{ filters.category_id|default(0) }}">
+        <input type="hidden" name="assigned_to_user_id" value="{{ filters.assigned_to_user_id|default(0) }}">
+        <input type="hidden" name="sort" value="{{ backlogSort|default('updated_at') }}">
+        <input type="hidden" name="dir" value="{{ backlogDirection|default('desc') }}">
+        <label class="dh-inline-select">
+          <span>Exibir</span>
+          <select name="per_page" onchange="this.form.submit()">
+            {% for option in ['5', '10', '15', '20', '25', '50', '100', 'all'] %}
+              <option value="{{ option }}" {{ backlogPagination.per_page|default('10') == option ? 'selected' : '' }}>
+                {{ option == 'all' ? 'Todos' : option }}
+              </option>
+            {% endfor %}
+          </select>
+        </label>
+      </form>
+    </div>
+    <div class="dh-list-controls__summary">{{ backlogPagination.from|default(0) }}-{{ backlogPagination.to|default(backlogTickets|length) }} de {{ backlogPagination.total_items|default(backlogTickets|length) }} ticket(s)</div>
+  </div>
+
+  {% if backlogTickets is empty %}
+    <p class="db-card-subtitle">Nenhum ticket encontrado para o backlog atual.</p>
+  {% else %}
+    {% set tableContent %}
+      <thead>
+        <tr>
+          <th><a href="{{ app_url('app?' ~ (backlogQuery|merge({sort: 'id', dir: backlogSort == 'id' and backlogDirection == 'asc' ? 'desc' : 'asc', page: 1})|url_encode)) }}">ID {% if backlogSort == 'id' %}<i class="bi {{ sortIcons[backlogDirection] }}"></i>{% endif %}</a></th>
+          <th><a href="{{ app_url('app?' ~ (backlogQuery|merge({sort: 'title', dir: backlogSort == 'title' and backlogDirection == 'asc' ? 'desc' : 'asc', page: 1})|url_encode)) }}">Título {% if backlogSort == 'title' %}<i class="bi {{ sortIcons[backlogDirection] }}"></i>{% endif %}</a></th>
+          <th><a href="{{ app_url('app?' ~ (backlogQuery|merge({sort: 'sector', dir: backlogSort == 'sector' and backlogDirection == 'asc' ? 'desc' : 'asc', page: 1})|url_encode)) }}">Setor {% if backlogSort == 'sector' %}<i class="bi {{ sortIcons[backlogDirection] }}"></i>{% endif %}</a></th>
+          <th><a href="{{ app_url('app?' ~ (backlogQuery|merge({sort: 'status', dir: backlogSort == 'status' and backlogDirection == 'asc' ? 'desc' : 'asc', page: 1})|url_encode)) }}">Status {% if backlogSort == 'status' %}<i class="bi {{ sortIcons[backlogDirection] }}"></i>{% endif %}</a></th>
+          <th><a href="{{ app_url('app?' ~ (backlogQuery|merge({sort: 'category', dir: backlogSort == 'category' and backlogDirection == 'asc' ? 'desc' : 'asc', page: 1})|url_encode)) }}">Categoria {% if backlogSort == 'category' %}<i class="bi {{ sortIcons[backlogDirection] }}"></i>{% endif %}</a></th>
+          <th><a href="{{ app_url('app?' ~ (backlogQuery|merge({sort: 'assigned_to', dir: backlogSort == 'assigned_to' and backlogDirection == 'asc' ? 'desc' : 'asc', page: 1})|url_encode)) }}">Atribuído {% if backlogSort == 'assigned_to' %}<i class="bi {{ sortIcons[backlogDirection] }}"></i>{% endif %}</a></th>
+          <th><a href="{{ app_url('app?' ~ (backlogQuery|merge({sort: 'created_at', dir: backlogSort == 'created_at' and backlogDirection == 'asc' ? 'desc' : 'asc', page: 1})|url_encode)) }}">Idade {% if backlogSort == 'created_at' %}<i class="bi {{ sortIcons[backlogDirection] }}"></i>{% endif %}</a></th>
+          <th><a href="{{ app_url('app?' ~ (backlogQuery|merge({sort: 'updated_at', dir: backlogSort == 'updated_at' and backlogDirection == 'asc' ? 'desc' : 'asc', page: 1})|url_encode)) }}">Atualizado {% if backlogSort == 'updated_at' %}<i class="bi {{ sortIcons[backlogDirection] }}"></i>{% endif %}</a></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in backlogTickets %}
+          <tr>
+            <td><a href="{{ app_url('tickets/' ~ item.id) }}" hx-boost="false">#{{ item.id }}</a></td>
+            <td>{{ item.title }}</td>
+            <td>{{ item.request_sector|default('-') }}</td>
+            <td>{{ statusLabels[item.status]|default(item.status) }}</td>
+            <td>{{ item.category_label }}</td>
+            <td>
+              {% if item.assigned_to_name|default('') %}
+                {{ (rankShort[item.assigned_to_rank|default('')] ?? item.assigned_to_rank|default('')) ~ ' ' ~ item.assigned_to_name }}
+              {% else %}
+                Não atribuído
+              {% endif %}
+            </td>
+            <td>{{ item.age_label|default('-') }}</td>
+            <td>{{ item.updated_at }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    {% endset %}
+    {% include 'components/deskhelper-table-shell.twig' with { content: tableContent, tableClass: 'db-table db-admin-list-table' } %}
+    {% if backlogPagination.total_pages|default(1) > 1 %}
+      <div class="dh-toolbar-inline dh-pagination-bar">
+        <div class="db-contact-actions">
+          {% if backlogPagination.has_prev %}
+            <a class="db-card-link db-card-link-secondary" href="{{ app_url('app?' ~ (backlogQuery|merge({page: backlogPagination.prev_page})|url_encode)) }}">Anterior</a>
+          {% else %}
+            <span class="db-card-link db-card-link-secondary is-disabled" aria-disabled="true">Anterior</span>
+          {% endif %}
+          {% if backlogPagination.has_next %}
+            <a class="db-card-link db-card-link-secondary" href="{{ app_url('app?' ~ (backlogQuery|merge({page: backlogPagination.next_page})|url_encode)) }}">Próxima</a>
+          {% else %}
+            <span class="db-card-link db-card-link-secondary is-disabled" aria-disabled="true">Próxima</span>
+          {% endif %}
+        </div>
+        <div class="dh-result-summary">Página {{ backlogPagination.page }} de {{ backlogPagination.total_pages }}</div>
+      </div>
+    {% endif %}
+  {% endif %}
+  {% endif %}
+{% endblock %}

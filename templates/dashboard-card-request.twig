@@ -1,0 +1,354 @@
+{% extends 'layouts/base.twig' %}
+
+{% block title %}Solicitar card | 16º BI Mtz{% endblock %}
+
+{% block content %}
+<div class="db-shell">
+  <aside id="db-sidebar" class="db-sidebar" data-sidebar aria-label="Menu de seções">
+    <div class="db-sidebar-header">
+      <img
+        class="db-om-logo"
+        src="{{ asset_base_path }}/assets/img/om.png"
+        alt="Imagem institucional"
+      >
+      <h1 class="db-brand">16º BI Mtz</h1>
+      <p class="db-caption">16º BI Mtz</p>
+    </div>
+
+    <nav class="db-menu" aria-label="Navegação de seções">
+      <a href="{{ app_url() }}" hx-boost="false" class="db-menu-item{{ activeSection == 'home' ? ' is-active' : '' }}" aria-current="{{ activeSection == 'home' ? 'page' : 'false' }}">
+        <i class="bi bi-speedometer2" aria-hidden="true"></i>
+        <span>PAINEL DE CONTROLE</span>
+      </a>
+      <span class="db-menu-divider" aria-hidden="true"></span>
+      {% set sidebarGroups = groupedSections|default([]) %}
+      {% for group in sidebarGroups %}
+        {% set groupSlugs = group.items|keys %}
+        {% set isGroupOpen = activeSection is defined and activeSection in groupSlugs %}
+        <section class="db-menu-group-block" data-menu-group>
+          <button
+            type="button"
+            class="db-menu-group-toggle"
+            data-menu-group-toggle
+            data-group-key="group-{{ loop.index0 }}-{{ group.label|lower|trim|replace({' ': '-'}) }}"
+            aria-expanded="{{ isGroupOpen ? 'true' : 'false' }}"
+          >
+            <span class="db-menu-group">{{ group.label }}</span>
+            <i class="bi bi-chevron-down" aria-hidden="true"></i>
+          </button>
+          <div class="db-menu-group-items" data-menu-group-items {{ isGroupOpen ? '' : 'hidden' }}>
+            {% for slug, section in group.items %}
+              <a
+                href="{{ app_base_path }}/{{ slug }}"
+                hx-boost="false"
+                class="db-menu-item{{ activeSection == slug ? ' is-active' : '' }}"
+                aria-current="{{ activeSection == slug ? 'page' : 'false' }}"
+              >
+                {{ section.label }}
+              </a>
+              {% if not loop.last %}
+                <span class="db-menu-divider db-menu-divider-sub" aria-hidden="true"></span>
+              {% endif %}
+            {% endfor %}
+          </div>
+        </section>
+        {% if not loop.last %}
+          <span class="db-menu-divider" aria-hidden="true"></span>
+        {% endif %}
+      {% endfor %}
+      <span class="db-menu-divider" aria-hidden="true"></span>
+      {% set isDocsMenuOpen = activeSection in ['readme', 'readme-seed', 'readme-sqlite', 'guardiao', 'distintivo-om'] %}
+      <section class="db-menu-group-block" data-menu-group>
+        <button
+          type="button"
+          class="db-menu-group-toggle"
+          data-menu-group-toggle
+          data-group-key="docs-menu"
+          aria-expanded="{{ isDocsMenuOpen ? 'true' : 'false' }}"
+        >
+          <span class="db-menu-group"><i class="bi bi-journal-text" aria-hidden="true"></i>Documentação</span>
+          <i class="bi bi-chevron-down" aria-hidden="true"></i>
+        </button>
+        <div class="db-menu-group-items" data-menu-group-items {{ isDocsMenuOpen ? '' : 'hidden' }}>
+          <a href="{{ app_base_path }}/readme" hx-boost="false" class="db-menu-item{{ activeSection == 'readme' ? ' is-active' : '' }}" aria-current="{{ activeSection == 'readme' ? 'page' : 'false' }}">
+            Guia do usuário
+          </a>
+          <span class="db-menu-divider db-menu-divider-sub" aria-hidden="true"></span>
+          <a href="{{ app_base_path }}/readme-seed" hx-boost="false" class="db-menu-item{{ activeSection == 'readme-seed' ? ' is-active' : '' }}" aria-current="{{ activeSection == 'readme-seed' ? 'page' : 'false' }}">
+            Guia de Seed
+          </a>
+          <span class="db-menu-divider db-menu-divider-sub" aria-hidden="true"></span>
+          <a href="{{ app_base_path }}/readme-sqlite" hx-boost="false" class="db-menu-item{{ activeSection == 'readme-sqlite' ? ' is-active' : '' }}" aria-current="{{ activeSection == 'readme-sqlite' ? 'page' : 'false' }}">
+            Guia do banco
+          </a>
+          <span class="db-menu-divider db-menu-divider-sub" aria-hidden="true"></span>
+          <a href="{{ app_base_path }}/guardiao" hx-boost="false" class="db-menu-item{{ activeSection == 'guardiao' ? ' is-active' : '' }}" aria-current="{{ activeSection == 'guardiao' ? 'page' : 'false' }}">
+            Guardião
+          </a>
+          <span class="db-menu-divider db-menu-divider-sub" aria-hidden="true"></span>
+          <a href="{{ app_base_path }}/distintivo-om" hx-boost="false" class="db-menu-item{{ activeSection == 'distintivo-om' ? ' is-active' : '' }}" aria-current="{{ activeSection == 'distintivo-om' ? 'page' : 'false' }}">
+            Distintivo da OM
+          </a>
+        </div>
+      </section>
+      <span class="db-menu-divider" aria-hidden="true"></span>
+      <a href="{{ app_base_path }}/faq" hx-boost="false" class="db-menu-item{{ activeSection == 'faq' ? ' is-active' : '' }}" aria-current="{{ activeSection == 'faq' ? 'page' : 'false' }}">
+        <i class="bi bi-question-circle" aria-hidden="true"></i>
+        <span>FAQ DO GUARDIÃO</span>
+      </a>
+      <span class="db-menu-divider" aria-hidden="true"></span>
+      <a href="{{ app_base_path }}/solicitar-card" hx-boost="false" class="db-menu-item{{ activeSection == 'solicitar-card' ? ' is-active' : '' }}" aria-current="{{ activeSection == 'solicitar-card' ? 'page' : 'false' }}">
+        <i class="bi bi-person-vcard" aria-hidden="true"></i>
+        <span>SOLICITAR CARD</span>
+      </a>
+      <span class="db-menu-divider" aria-hidden="true"></span>
+      <a href="{{ app_base_path }}/contato" hx-boost="false" class="db-menu-item{{ activeSection == 'contato' ? ' is-active' : '' }}" aria-current="{{ activeSection == 'contato' ? 'page' : 'false' }}">
+        <i class="bi bi-envelope" aria-hidden="true"></i>
+        <span>CONTATO</span>
+      </a>
+      {% if isAdminLogged|default(false) %}
+        <span class="db-menu-divider" aria-hidden="true"></span>
+        {% set isAdminMenuOpen = activeSection == 'admin' %}
+        <section class="db-menu-group-block" data-menu-group>
+          <button
+            type="button"
+            class="db-menu-group-toggle"
+            data-menu-group-toggle
+            data-group-key="admin-menu"
+            aria-expanded="{{ isAdminMenuOpen ? 'true' : 'false' }}"
+          >
+            <span class="db-menu-group"><i class="bi bi-shield-lock" aria-hidden="true"></i>Admin</span>
+            <i class="bi bi-chevron-down" aria-hidden="true"></i>
+          </button>
+          <div class="db-menu-group-items" data-menu-group-items {{ isAdminMenuOpen ? '' : 'hidden' }}>
+            <a href="{{ app_base_path }}/admin?entity=groups" hx-boost="false" class="db-menu-item{{ activeSection == 'admin' and adminEntity|default('groups') == 'groups' ? ' is-active' : '' }}" aria-current="{{ activeSection == 'admin' and adminEntity|default('groups') == 'groups' ? 'page' : 'false' }}">
+              Grupos
+            </a>
+            <span class="db-menu-divider db-menu-divider-sub" aria-hidden="true"></span>
+            <a href="{{ app_base_path }}/admin?entity=subgroups" hx-boost="false" class="db-menu-item{{ activeSection == 'admin' and adminEntity|default('') == 'subgroups' ? ' is-active' : '' }}" aria-current="{{ activeSection == 'admin' and adminEntity|default('') == 'subgroups' ? 'page' : 'false' }}">
+              Subgrupos
+            </a>
+            <span class="db-menu-divider db-menu-divider-sub" aria-hidden="true"></span>
+            <a href="{{ app_base_path }}/admin?entity=cards" hx-boost="false" class="db-menu-item{{ activeSection == 'admin' and adminEntity|default('') == 'cards' ? ' is-active' : '' }}" aria-current="{{ activeSection == 'admin' and adminEntity|default('') == 'cards' ? 'page' : 'false' }}">
+              Cards
+            </a>
+            <span class="db-menu-divider db-menu-divider-sub" aria-hidden="true"></span>
+            <a href="{{ app_base_path }}/admin?entity=requests" hx-boost="false" class="db-menu-item{{ activeSection == 'admin' and adminEntity|default('') == 'requests' ? ' is-active' : '' }}" aria-current="{{ activeSection == 'admin' and adminEntity|default('') == 'requests' ? 'page' : 'false' }}">
+              Solicitações
+            </a>
+          </div>
+        </section>
+        <form method="post" action="{{ app_base_path }}/admin/logout" hx-boost="false" class="db-menu-form">
+          <input type="hidden" name="csrf_token" value="{{ csrfToken|default('') }}">
+          <button class="db-menu-item" type="submit"><i class="bi bi-box-arrow-right" aria-hidden="true"></i><span>SAIR</span></button>
+        </form>
+      {% else %}
+        <span class="db-menu-divider" aria-hidden="true"></span>
+        <a href="{{ app_base_path }}/login" hx-boost="false" class="db-menu-item{{ activeSection == 'login' ? ' is-active' : '' }}" aria-current="{{ activeSection == 'login' ? 'page' : 'false' }}">
+          <i class="bi bi-box-arrow-in-right" aria-hidden="true"></i>
+          <span>LOGIN</span>
+        </a>
+      {% endif %}
+    </nav>
+  </aside>
+  <div class="db-sidebar-backdrop" data-sidebar-backdrop aria-hidden="true"></div>
+
+  <main class="db-main" aria-label="Solicitação pública de card">
+    {% include 'components/dashboard-topbar.twig' with {
+      lastUpdated: lastUpdated,
+      breadcrumbs: [
+        { label: 'Dashboard', url: '{{ app_base_path }}' },
+        { label: 'Solicitar card' }
+      ]
+    } %}
+
+    <div id="db-content" class="db-main-body">
+      {% include 'components/dashboard-content-header.twig' with {
+        breadcrumbs: [
+          { label: 'Dashboard', url: '{{ app_base_path }}' },
+          { label: 'Solicitar card' }
+        ],
+        title: 'Solicitação de novo card',
+        subtitle: 'Envie sua sugestão de card para análise e aprovação da administração do Dashboard'
+      } %}
+
+      <article class="db-card db-card--standard db-readme-card db-contact-card db-card-request-card" aria-label="Formulário de solicitação de card">
+        <p class="db-contact-intro">
+          Preencha os campos abaixo para sugerir um novo card. Após análise, o card poderá ser aprovado e publicado no painel.
+        </p>
+
+        {% if formSuccess %}
+          <div class="db-form-alert is-success" role="status" aria-live="polite">
+            Solicitação enviada com sucesso. Obrigado pela contribuição.
+          </div>
+        {% endif %}
+
+        {% if formErrors is defined and formErrors is not empty %}
+          <div class="db-form-alert is-error" role="alert">
+            Corrija os campos destacados para enviar a solicitação.
+          </div>
+        {% endif %}
+
+        <form class="db-contact-form" method="post" action="{{ app_base_path }}/solicitar-card" novalidate>
+          <input type="hidden" name="csrf_token" value="{{ csrfToken }}">
+
+          <label class="db-hp-field" aria-hidden="true">
+            <span>Website</span>
+            <input
+              type="text"
+              name="website"
+              value="{{ formData.website|default('') }}"
+              tabindex="-1"
+              autocomplete="off"
+            >
+          </label>
+
+          <div class="db-form-grid db-form-grid-3">
+            <label class="db-form-field">
+              <span class="db-form-label">Posto/graduação *</span>
+              <select class="db-form-input{{ formErrors.requester_rank is defined ? ' is-invalid' : '' }}" name="requester_rank" required>
+                <option value="">Selecione</option>
+                {% for rank in requesterRanks|default([]) %}
+                  <option value="{{ rank }}" {{ formData.requester_rank|default('') == rank ? 'selected' : '' }}>
+                    {{ rank }}
+                  </option>
+                {% endfor %}
+              </select>
+              {% if formErrors.requester_rank is defined %}
+                <span class="db-form-error">{{ formErrors.requester_rank }}</span>
+              {% endif %}
+            </label>
+
+            <label class="db-form-field">
+              <span class="db-form-label">Seu nome *</span>
+              <input
+                class="db-form-input{{ formErrors.requester_name is defined ? ' is-invalid' : '' }}"
+                type="text"
+                name="requester_name"
+                value="{{ formData.requester_name|default('') }}"
+                placeholder="Nome de guerra"
+                autocomplete="name"
+                maxlength="140"
+                required
+              >
+              {% if formErrors.requester_name is defined %}
+                <span class="db-form-error">{{ formErrors.requester_name }}</span>
+              {% endif %}
+            </label>
+
+            <label class="db-form-field">
+              <span class="db-form-label">E-mail *</span>
+              <input
+                class="db-form-input{{ formErrors.requester_contact is defined ? ' is-invalid' : '' }}"
+                type="email"
+                name="requester_contact"
+                value="{{ formData.requester_contact|default('') }}"
+                placeholder="nome@exemplo.mil.br"
+                maxlength="180"
+                required
+              >
+              {% if formErrors.requester_contact is defined %}
+                <span class="db-form-error">{{ formErrors.requester_contact }}</span>
+              {% endif %}
+            </label>
+          </div>
+
+          <div class="db-form-grid db-form-grid-4">
+            <label class="db-form-field">
+              <span class="db-form-label">Título do card *</span>
+              <input
+                class="db-form-input{{ formErrors.title is defined ? ' is-invalid' : '' }}"
+                type="text"
+                name="title"
+                value="{{ formData.title|default('') }}"
+                placeholder="Ex: DAP"
+                maxlength="160"
+                required
+              >
+              {% if formErrors.title is defined %}
+                <span class="db-form-error">{{ formErrors.title }}</span>
+              {% endif %}
+            </label>
+
+            <label class="db-form-field">
+              <span class="db-form-label">URL (https://) *</span>
+              <input
+                class="db-form-input{{ formErrors.href is defined ? ' is-invalid' : '' }}"
+                type="url"
+                name="href"
+                value="{{ formData.href|default('') }}"
+                placeholder="https://www.dap.eb.mil.br/"
+                maxlength="500"
+                required
+              >
+              {% if formErrors.href is defined %}
+                <span class="db-form-error">{{ formErrors.href }}</span>
+              {% endif %}
+            </label>
+
+            <label class="db-form-field">
+              <span class="db-form-label">Grupo *</span>
+              <select class="db-form-input{{ formErrors.group_slug is defined ? ' is-invalid' : '' }}" name="group_slug" required>
+                <option value="">Selecione um grupo</option>
+                {% for group in groups %}
+                  <option value="{{ group.slug }}" {{ formData.group_slug|default('') == group.slug ? 'selected' : '' }}>
+                    {{ group.label|label_case }}
+                  </option>
+                {% endfor %}
+              </select>
+              {% if formErrors.group_slug is defined %}
+                <span class="db-form-error">{{ formErrors.group_slug }}</span>
+              {% endif %}
+            </label>
+
+            <label class="db-form-field">
+              <span class="db-form-label">Subgrupo *</span>
+              <select class="db-form-input{{ formErrors.subgroup_slug is defined ? ' is-invalid' : '' }}" name="subgroup_slug" required>
+                <option value="">Selecione um subgrupo</option>
+                {% for slug, section in sections %}
+                  <option value="{{ slug }}" {{ formData.subgroup_slug|default('') == slug ? 'selected' : '' }}>
+                    {{ section.group|label_case }} · {{ section.label|label_case }}
+                  </option>
+                {% endfor %}
+              </select>
+              {% if formErrors.subgroup_slug is defined %}
+                <span class="db-form-error">{{ formErrors.subgroup_slug }}</span>
+              {% endif %}
+            </label>
+          </div>
+
+          <label class="db-form-field">
+            <span class="db-form-label">Descrição *</span>
+            <input
+              class="db-form-input{{ formErrors.justification is defined ? ' is-invalid' : '' }}"
+              type="text"
+              name="justification"
+              value="{{ formData.justification|default('') }}"
+              placeholder="Ex: Diretoria de Assistência ao Pessoal"
+              maxlength="300"
+              required
+            >
+            {% if formErrors.justification is defined %}
+              <span class="db-form-error">{{ formErrors.justification }}</span>
+            {% endif %}
+          </label>
+
+          {% if formErrors.csrf is defined %}
+            <div class="db-form-alert is-error" role="alert">
+              {{ formErrors.csrf }}
+            </div>
+          {% endif %}
+
+          <div class="db-form-actions">
+            <button type="submit" class="db-card-link">Enviar solicitação</button>
+          </div>
+        </form>
+      </article>
+
+      {% include 'components/dashboard-footer.twig' with {
+        lastUpdated: lastUpdated
+      } %}
+    </div>
+  </main>
+</div>
+{% endblock %}

@@ -1,0 +1,189 @@
+{% extends 'layouts/deskhelper-dashboard.twig' %}
+
+{% block title %}Novo Ticket | Deskhelper{% endblock %}
+
+{% block head %}
+  <style>
+    .dh-ticket-form-layout { display:grid; gap:20px; grid-template-columns:minmax(0, 320px) minmax(0, 1fr); align-items:start; margin-top:20px; }
+    .dh-ticket-form-notes { display:grid; gap:12px; }
+    .dh-ticket-form-note {
+      display:flex;
+      gap:12px;
+      align-items:flex-start;
+      padding:14px 16px;
+      border-radius:16px;
+      background:rgba(244, 247, 241, 0.92);
+      border:1px solid rgba(0,0,0,.06);
+    }
+    .dh-ticket-form-note i { font-size:1rem; color:#405629; margin-top:2px; }
+    .dh-ticket-form-note-head {
+      display:flex;
+      align-items:center;
+      gap:10px;
+      margin-bottom:4px;
+    }
+    .dh-ticket-form-note-head i {
+      margin-top:0;
+      flex:0 0 auto;
+    }
+    .dh-ticket-form-note strong { display:block; font-size:.88rem; text-transform:uppercase; letter-spacing:.04em; }
+    .dh-ticket-form-shell { display:grid; gap:16px; }
+    .dh-ticket-form-panel {
+      display:grid;
+      gap:16px;
+      padding:18px;
+      border-radius:18px;
+      background:linear-gradient(180deg, rgba(247,249,244,.96), rgba(255,255,255,.98));
+      border:1px solid rgba(0,0,0,.06);
+    }
+    .dh-ticket-form-grid {
+      display:grid;
+      gap:14px;
+      grid-template-columns:repeat(2, minmax(0, 1fr));
+    }
+    .dh-ticket-form-shell .db-form-field {
+      gap:8px;
+    }
+    .dh-ticket-form-shell .db-form-label {
+      font-size:.76rem;
+      font-weight:800;
+      letter-spacing:.06em;
+      text-transform:uppercase;
+      color:rgba(27, 38, 24, 0.72);
+    }
+    .dh-ticket-form-shell .db-form-input {
+      min-height:42px;
+      border-radius:12px;
+      border:1px solid color-mix(in srgb, var(--accent) 14%, var(--border));
+      background:rgba(255, 255, 255, 0.94);
+      padding:0.7rem 0.85rem;
+      font-size:0.9rem;
+      transition:border-color 140ms ease, box-shadow 140ms ease, background-color 140ms ease;
+    }
+    .dh-ticket-form-shell .db-form-input:focus {
+      outline:none;
+      border-color:color-mix(in srgb, var(--accent) 44%, var(--border));
+      box-shadow:0 0 0 4px color-mix(in srgb, var(--accent) 12%, transparent);
+      background:#ffffff;
+    }
+    .dh-ticket-form-shell .db-form-textarea {
+      min-height:220px;
+      line-height:1.55;
+      resize:vertical;
+    }
+    .dh-ticket-form-help {
+      margin:0;
+      color:rgba(27, 38, 24, 0.72);
+      font-size:0.9rem;
+      line-height:1.55;
+    }
+    @media (max-width: 960px) {
+      .dh-ticket-form-layout { grid-template-columns:1fr; }
+    }
+    @media (max-width: 720px) {
+      .dh-ticket-form-grid { grid-template-columns:1fr; }
+    }
+  </style>
+{% endblock %}
+
+{% block deskhelper_shell_title %}Novo ticket{% endblock %}
+{% block deskhelper_shell_subtitle %}Registre uma nova ocorrência com categoria, setor solicitante, prioridade e contexto suficiente para atendimento.{% endblock %}
+
+{% block deskhelper_main %}
+  {% if formError|default('') %}
+    <div class="db-admin-flash" role="alert">{{ formError }}</div>
+  {% endif %}
+
+  <div class="dh-ticket-form-layout">
+    <article class="db-card">
+      <div class="db-card-body">
+        <h2 class="db-card-title">Orientações</h2>
+        <div class="dh-ticket-form-notes">
+          <div class="dh-ticket-form-note">
+            <div>
+              <div class="dh-ticket-form-note-head">
+                <i class="bi bi-chat-left-text"></i>
+                <strong>Título objetivo</strong>
+              </div>
+              <p class="db-card-subtitle">Resuma o problema com clareza para facilitar triagem e busca posterior.</p>
+            </div>
+          </div>
+          <div class="dh-ticket-form-note">
+            <div>
+              <div class="dh-ticket-form-note-head">
+                <i class="bi bi-tags"></i>
+                <strong>Categoria e prioridade</strong>
+              </div>
+              <p class="db-card-subtitle">Escolha a categoria correta e use prioridade alta apenas quando houver impacto real.</p>
+            </div>
+          </div>
+          <div class="dh-ticket-form-note">
+            <div>
+              <div class="dh-ticket-form-note-head">
+                <i class="bi bi-card-text"></i>
+                <strong>Descrição útil</strong>
+              </div>
+              <p class="db-card-subtitle">Informe contexto, erro observado, sistema afetado e o que já foi tentado.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </article>
+
+    <article class="db-card">
+      <div class="db-card-body">
+        <form class="db-contact-form dh-ticket-form-shell" method="post" action="{{ app_url('tickets/new') }}" hx-boost="false" novalidate>
+          <input type="hidden" name="csrf_token" value="{{ csrfToken|default('') }}">
+
+          <section class="dh-ticket-form-panel" aria-label="Dados do ticket">
+            <div class="db-form-field">
+              <label class="db-form-label" for="ticket-title">Título</label>
+              <input class="db-form-input" id="ticket-title" type="text" name="title" value="{{ form.title|default('') }}" maxlength="140" placeholder="Ex.: Não consigo acessar o SPED." required>
+            </div>
+
+            <div class="dh-ticket-form-grid">
+              <div class="db-form-field">
+                <label class="db-form-label" for="ticket-category">Categoria</label>
+                <select class="db-form-input" id="ticket-category" name="category_id" required>
+                  <option value="">Selecione</option>
+                  {% for category in categories %}
+                    <option value="{{ category.id }}" {{ form.category_id|default('') == category.id ? 'selected' : '' }}>{{ category.label }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+              <div class="db-form-field">
+                <label class="db-form-label" for="ticket-priority">Prioridade</label>
+                <select class="db-form-input" id="ticket-priority" name="priority">
+                  <option value="low" {{ form.priority|default('medium') == 'low' ? 'selected' : '' }}>Baixa</option>
+                  <option value="medium" {{ form.priority|default('medium') == 'medium' ? 'selected' : '' }}>Média</option>
+                  <option value="high" {{ form.priority|default('medium') == 'high' ? 'selected' : '' }}>Alta</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="db-form-field">
+              <label class="db-form-label" for="ticket-request-sector">Setor</label>
+              <select class="db-form-input" id="ticket-request-sector" name="request_sector" required>
+                <option value="">Selecione</option>
+                {% for requestSectorOption in requestSectorOptions|default([]) %}
+                  <option value="{{ requestSectorOption }}" {{ form.request_sector|default('') == requestSectorOption ? 'selected' : '' }}>{{ requestSectorOption }}</option>
+                {% endfor %}
+              </select>
+            </div>
+
+            <div class="db-form-field">
+              <label class="db-form-label" for="ticket-description">Descrição</label>
+              <textarea class="db-form-input db-form-textarea" id="ticket-description" name="description" rows="8" placeholder="Descreva o problema, quando começou, o sistema afetado, a mensagem de erro e o que já foi tentado." required>{{ form.description|default('') }}</textarea>
+              <p class="dh-ticket-form-help">Inclua erro observado, sistema afetado, contexto do incidente e o que já foi tentado.</p>
+            </div>
+          </section>
+
+          <div class="db-contact-actions">
+            <button class="db-card-link" type="submit">Abrir ticket</button>
+            <a class="db-card-link db-card-link-secondary" href="{{ app_url('tickets') }}">Cancelar</a>
+          </div>
+        </form>
+      </div>
+    </article>
+  </div>
+{% endblock %}

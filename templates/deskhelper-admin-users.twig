@@ -1,0 +1,340 @@
+{% extends 'layouts/deskhelper-dashboard.twig' %}
+
+{% block title %}Usuários | Deskhelper{% endblock %}
+
+{% block head %}
+  <style>
+    .dh-admin-users-filter-grid {
+      grid-template-columns: minmax(0, 1.2fr) minmax(0, 1.25fr) minmax(140px, 0.75fr) minmax(140px, 0.75fr);
+    }
+    .dh-admin-users-table {
+      table-layout: auto;
+      min-width: 1160px;
+    }
+    #users-list .db-table-wrapper {
+      max-width: 100%;
+      overflow-x: auto;
+    }
+    @media (max-width: 980px) {
+      .dh-admin-users-filter-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+    @media (max-width: 640px) {
+      .dh-admin-users-filter-grid {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
+    .dh-admin-users-table th:nth-child(1),
+    .dh-admin-users-table td:nth-child(1) {
+      width: 6%;
+      text-align: center;
+    }
+    .dh-admin-users-table th:nth-child(2),
+    .dh-admin-users-table td:nth-child(2) {
+      width: 9%;
+    }
+    .dh-admin-users-table th:nth-child(3),
+    .dh-admin-users-table td:nth-child(3) {
+      width: 13%;
+    }
+    .dh-admin-users-table th:nth-child(4),
+    .dh-admin-users-table td:nth-child(4) {
+      width: 16%;
+    }
+    .dh-admin-users-table th:nth-child(5),
+    .dh-admin-users-table td:nth-child(5) {
+      width: 10%;
+    }
+    .dh-admin-users-table th:nth-child(6),
+    .dh-admin-users-table td:nth-child(6) {
+      width: 11%;
+    }
+    .dh-admin-users-table th:nth-child(7),
+    .dh-admin-users-table td:nth-child(7) {
+      width: 13%;
+    }
+    .dh-admin-users-table th:nth-child(8),
+    .dh-admin-users-table td:nth-child(8) {
+      width: 22%;
+    }
+    .dh-admin-users-table td:nth-child(4) {
+      max-width: 240px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .dh-admin-users-table td:nth-child(8) {
+      text-align: center;
+    }
+    .dh-admin-users-avatar {
+      width: 42px;
+      height: 42px;
+      border-radius: 10px;
+      border: 1px solid color-mix(in srgb, var(--accent) 20%, var(--border));
+      box-shadow: 0 3px 8px rgba(19, 31, 14, 0.08);
+    }
+    .dh-admin-users-actions {
+      gap: 8px !important;
+      flex-wrap: nowrap !important;
+      justify-content: center;
+      align-items: center;
+      width: 100%;
+    }
+    .dh-admin-users-actions form {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: nowrap;
+    }
+    .dh-admin-users-actions select,
+    .dh-admin-users-actions button {
+      white-space: nowrap;
+    }
+    .dh-admin-users-actions select {
+      width: 118px;
+      min-width: 118px;
+      min-height: 42px;
+      border-radius: 12px;
+      border: 1px solid color-mix(in srgb, var(--accent) 14%, var(--border));
+      background: rgba(255, 255, 255, 0.92);
+      color: var(--text);
+      font-size: 0.9rem;
+      padding: 0 0.85rem;
+      transition: border-color 140ms ease, box-shadow 140ms ease, background-color 140ms ease;
+    }
+    .dh-admin-users-actions select:focus {
+      outline: none;
+      border-color: color-mix(in srgb, var(--accent) 44%, var(--border));
+      box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 12%, transparent);
+      background: #ffffff;
+    }
+    .dh-admin-users-actions .db-card-link {
+      min-height: 42px;
+      padding-top: 0;
+      padding-bottom: 0;
+      flex: 0 0 auto;
+    }
+  </style>
+{% endblock %}
+
+{% block deskhelper_shell_title %}Usuários{% endblock %}
+{% block deskhelper_shell_subtitle %}Gerencie status e perfis dos usuários já cadastrados.{% endblock %}
+
+{% block deskhelper_main %}
+  {% set statusLabels = {
+    'active': 'Ativo',
+    'disabled': 'Desativado',
+    'pending': 'Pendente',
+    'rejected': 'Rejeitado'
+  } %}
+  {% set roleLabels = {
+    'user': 'Usuário',
+    'operator': 'Operador',
+    'admin': 'Administrador'
+  } %}
+  {% set rankShort = {
+    'General de Exército': 'Gen Ex',
+    'General de Divisão': 'Gen Div',
+    'General de Brigada': 'Gen Bda',
+    'Coronel': 'Cel',
+    'Tenente-Coronel': 'Ten Cel',
+    'Major': 'Maj',
+    'Capitão': 'Cap',
+    '1º Tenente': '1º Ten',
+    '2º Tenente': '2º Ten',
+    'Aspirante a Oficial': 'Asp',
+    'Subtenente': 'ST',
+    '1º Sargento': '1º Sgt',
+    '2º Sargento': '2º Sgt',
+    '3º Sargento': '3º Sgt',
+    'Cabo': 'Cb',
+    'Soldado': 'Sd'
+  } %}
+  {% set perPageOptions = ['5', '10', '15', '20', '25', '50', '100', 'all'] %}
+  {% set currentDirection = direction|default('asc') %}
+  {% set currentSort = sort|default('name') %}
+  {% macro sort_link(baseQuery, column, currentSort, currentDirection) %}
+    {% set nextDirection = currentSort == column and currentDirection == 'asc' ? 'desc' : 'asc' %}
+    {{ (baseQuery|merge({ sort: column, dir: nextDirection, page: 1 }))|url_encode }}
+  {% endmacro %}
+
+  {% if usersView == 'indicators' %}
+    <div class="dh-kpi-grid">
+      <a class="dh-kpi-link" href="{{ app_url('admin/users?view=list') }}">
+        {% include 'components/deskhelper-kpi-card.twig' with { label: 'Usuários totais', value: users|length, subtitle: 'Base completa de acesso ao deskhelper' } %}
+      </a>
+      <a class="dh-kpi-link" href="{{ app_url('admin/users?view=list&status=active') }}">
+        {% include 'components/deskhelper-kpi-card.twig' with { label: 'Ativos', value: statusSummary.active|default(0), subtitle: 'Contas prontas para uso operacional' } %}
+      </a>
+      <a class="dh-kpi-link" href="{{ app_url('admin/users?view=list&status=disabled') }}">
+        {% include 'components/deskhelper-kpi-card.twig' with { label: 'Desativados', value: statusSummary.disabled|default(0), subtitle: 'Contas bloqueadas manualmente' } %}
+      </a>
+      <a class="dh-kpi-link" href="{{ app_url('admin/users?view=list&status=pending') }}">
+        {% include 'components/deskhelper-kpi-card.twig' with { label: 'Pendentes', value: statusSummary.pending|default(0), subtitle: 'Cadastros aguardando liberação' } %}
+      </a>
+      <a class="dh-kpi-link" href="{{ app_url('admin/users?view=list&status=rejected') }}">
+        {% include 'components/deskhelper-kpi-card.twig' with { label: 'Rejeitados', value: statusSummary.rejected|default(0), subtitle: 'Solicitações rejeitadas pela administração' } %}
+      </a>
+    </div>
+
+    <div class="dh-kpi-grid">
+      <a class="dh-kpi-link" href="{{ app_url('admin/users?view=list&role=admin') }}">
+        {% include 'components/deskhelper-kpi-card.twig' with { label: 'Admins', value: roleSummary.admin|default(0), subtitle: 'Perfis com gestão total do ambiente' } %}
+      </a>
+      <a class="dh-kpi-link" href="{{ app_url('admin/users?view=list&role=operator') }}">
+        {% include 'components/deskhelper-kpi-card.twig' with { label: 'Operadores', value: roleSummary.operator|default(0), subtitle: 'Perfis habilitados para tratar tickets' } %}
+      </a>
+      <a class="dh-kpi-link" href="{{ app_url('admin/users?view=list&role=user') }}">
+        {% include 'components/deskhelper-kpi-card.twig' with { label: 'Usuários', value: roleSummary.user|default(0), subtitle: 'Perfis com acesso de solicitação e acompanhamento' } %}
+      </a>
+    </div>
+  {% else %}
+    <form class="db-contact-form db-admin-filters dh-search-panel" method="get" action="{{ app_url('admin/users') }}">
+      <input type="hidden" name="view" value="list">
+      <div class="dh-search-panel__grid dh-admin-users-filter-grid">
+        <label class="dh-search-panel__search">
+          <span class="dh-search-panel__label">Nome</span>
+          <div class="dh-search-panel__input-wrap">
+            <i class="bi bi-search" aria-hidden="true"></i>
+            <input type="text" name="name" value="{{ filters.name|default('') }}" placeholder="Filtrar por nome do usuário">
+          </div>
+        </label>
+        <label class="dh-search-panel__search">
+          <span class="dh-search-panel__label">E-mail</span>
+          <div class="dh-search-panel__input-wrap">
+            <i class="bi bi-envelope" aria-hidden="true"></i>
+            <input type="text" name="email" value="{{ filters.email|default('') }}" placeholder="Filtrar por e-mail">
+          </div>
+        </label>
+        <label class="dh-search-panel__field">
+          <span class="dh-search-panel__label">Status</span>
+          <select name="status">
+            <option value="">Todos</option>
+            <option value="active" {{ filters.status|default('') == 'active' ? 'selected' : '' }}>Ativo</option>
+            <option value="disabled" {{ filters.status|default('') == 'disabled' ? 'selected' : '' }}>Desativado</option>
+            <option value="pending" {{ filters.status|default('') == 'pending' ? 'selected' : '' }}>Pendente</option>
+            <option value="rejected" {{ filters.status|default('') == 'rejected' ? 'selected' : '' }}>Rejeitado</option>
+          </select>
+        </label>
+        <label class="dh-search-panel__field">
+          <span class="dh-search-panel__label">Perfil</span>
+          <select name="role">
+            <option value="">Todos</option>
+            <option value="user" {{ filters.role|default('') == 'user' ? 'selected' : '' }}>Usuário</option>
+            <option value="operator" {{ filters.role|default('') == 'operator' ? 'selected' : '' }}>Operador</option>
+            <option value="admin" {{ filters.role|default('') == 'admin' ? 'selected' : '' }}>Administrador</option>
+          </select>
+        </label>
+      </div>
+      <div class="db-contact-actions dh-search-panel__actions">
+        <button class="db-card-link" type="submit">Filtrar</button>
+        <a class="db-card-link db-card-link-secondary" href="{{ app_url('admin/users?view=list') }}">Limpar</a>
+      </div>
+    </form>
+
+    <div class="dh-list-controls">
+      <div class="dh-list-controls__group db-contact-actions">
+        {% include 'components/deskhelper-overview-link.twig' %}
+        <a class="db-card-link db-card-link-secondary" href="{{ app_url('admin/users?view=indicators') }}">Ver indicadores</a>
+        <form method="get" action="{{ app_url('admin/users') }}" style="display:inline;">
+          <input type="hidden" name="view" value="list">
+          <input type="hidden" name="name" value="{{ filters.name|default('') }}">
+          <input type="hidden" name="email" value="{{ filters.email|default('') }}">
+          <input type="hidden" name="status" value="{{ filters.status|default('') }}">
+          <input type="hidden" name="role" value="{{ filters.role|default('') }}">
+          <input type="hidden" name="sort" value="{{ sort|default('name') }}">
+          <input type="hidden" name="dir" value="{{ direction|default('asc') }}">
+          <label class="dh-inline-select">
+            <span>Exibir</span>
+            <select name="per_page" onchange="this.form.submit()">
+              {% for option in perPageOptions %}
+                <option value="{{ option }}" {{ pagination.per_page|default('10') == option ? 'selected' : '' }}>
+                  {{ option == 'all' ? 'Todos' : option }}
+                </option>
+              {% endfor %}
+            </select>
+          </label>
+        </form>
+      </div>
+      <div class="dh-list-controls__summary">{{ pagination.from|default(0) }}-{{ pagination.to|default(0) }} de {{ pagination.total_items|default(users|length) }} usuário(s)</div>
+    </div>
+
+    {% set tableContent %}
+          <thead>
+            <tr>
+              <th>Foto</th>
+              <th><a href="{{ app_url('admin/users?' ~ _self.sort_link(usersListQuery|default({view: 'list'}), 'rank', currentSort, currentDirection)) }}">Posto/Grad {% if currentSort == 'rank' %}<i class="bi {{ currentDirection == 'asc' ? 'bi-caret-up-fill' : 'bi-caret-down-fill' }}"></i>{% endif %}</a></th>
+              <th><a href="{{ app_url('admin/users?' ~ _self.sort_link(usersListQuery|default({view: 'list'}), 'name', currentSort, currentDirection)) }}">Nome {% if currentSort == 'name' %}<i class="bi {{ currentDirection == 'asc' ? 'bi-caret-up-fill' : 'bi-caret-down-fill' }}"></i>{% endif %}</a></th>
+              <th><a href="{{ app_url('admin/users?' ~ _self.sort_link(usersListQuery|default({view: 'list'}), 'email', currentSort, currentDirection)) }}">E-mail {% if currentSort == 'email' %}<i class="bi {{ currentDirection == 'asc' ? 'bi-caret-up-fill' : 'bi-caret-down-fill' }}"></i>{% endif %}</a></th>
+              <th><a href="{{ app_url('admin/users?' ~ _self.sort_link(usersListQuery|default({view: 'list'}), 'status', currentSort, currentDirection)) }}">Status {% if currentSort == 'status' %}<i class="bi {{ currentDirection == 'asc' ? 'bi-caret-up-fill' : 'bi-caret-down-fill' }}"></i>{% endif %}</a></th>
+              <th><a href="{{ app_url('admin/users?' ~ _self.sort_link(usersListQuery|default({view: 'list'}), 'sector', currentSort, currentDirection)) }}">SU {% if currentSort == 'sector' %}<i class="bi {{ currentDirection == 'asc' ? 'bi-caret-up-fill' : 'bi-caret-down-fill' }}"></i>{% endif %}</a></th>
+              <th><a href="{{ app_url('admin/users?' ~ _self.sort_link(usersListQuery|default({view: 'list'}), 'roles', currentSort, currentDirection)) }}">Perfis {% if currentSort == 'roles' %}<i class="bi {{ currentDirection == 'asc' ? 'bi-caret-up-fill' : 'bi-caret-down-fill' }}"></i>{% endif %}</a></th>
+              <th>Ações</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for managedUser in users %}
+              <tr>
+                <td>
+                  <span class="db-user-avatar dh-admin-users-avatar{{ managedUser.avatar_path|default('') ? '' : ' is-fallback' }}" data-initial="{{ managedUser.name|default('U')|slice(0, 1)|upper }}">
+                    {% if managedUser.avatar_path|default('') %}
+                      <img src="{{ asset_base_path }}/assets/img/avatar/{{ managedUser.avatar_path }}" alt="Foto de {{ managedUser.name }}" loading="lazy">
+                    {% endif %}
+                  </span>
+                </td>
+                <td>{{ rankShort[managedUser.rank|default('')] ?? managedUser.rank|default('-') }}</td>
+                <td>{{ managedUser.name }}</td>
+                <td>{{ managedUser.email }}</td>
+                <td>{{ statusLabels[managedUser.status]|default(managedUser.status) }}</td>
+                <td>{{ managedUser.sector|default('-') }}</td>
+                <td>
+                  {% for role in managedUser.roles %}
+                    {% include 'components/deskhelper-role-pill.twig' with { role: role } %}
+                  {% endfor %}
+                </td>
+                <td>
+                  <div class="db-contact-actions dh-admin-users-actions">
+                    <form method="post" action="{{ app_url('admin/users/update') }}" hx-boost="false">
+                      <input type="hidden" name="csrf_token" value="{{ csrfToken|default('') }}">
+                      <input type="hidden" name="id" value="{{ managedUser.id }}">
+                      <select name="status">
+                        {% for status in ['active', 'disabled', 'pending', 'rejected'] %}
+                          <option value="{{ status }}" {{ managedUser.status == status ? 'selected' : '' }}>{{ statusLabels[status]|default(status) }}</option>
+                        {% endfor %}
+                      </select>
+                      <select name="role">
+                        {% for role in ['user', 'operator', 'admin'] %}
+                          <option value="{{ role }}" {{ role in managedUser.roles ? 'selected' : '' }}>{{ roleLabels[role]|default(role) }}</option>
+                        {% endfor %}
+                      </select>
+                      <button class="db-card-link" type="submit">Salvar</button>
+                    </form>
+                  </div>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+      {% endset %}
+    <div id="users-list">
+      {% include 'components/deskhelper-table-shell.twig' with { content: tableContent, tableClass: 'db-table db-admin-list-table dh-admin-users-table' } %}
+    </div>
+    {% if pagination.total_pages|default(1) > 1 %}
+      <div class="dh-toolbar-inline dh-pagination-bar">
+        <div class="db-contact-actions">
+          {% if pagination.has_prev %}
+            <a class="db-card-link db-card-link-secondary" href="{{ app_url('admin/users?' ~ (usersListQuery|merge({ page: pagination.prev_page }))|url_encode) }}">Anterior</a>
+          {% else %}
+            <span class="db-card-link db-card-link-secondary is-disabled" aria-disabled="true">Anterior</span>
+          {% endif %}
+          {% if pagination.has_next %}
+            <a class="db-card-link db-card-link-secondary" href="{{ app_url('admin/users?' ~ (usersListQuery|merge({ page: pagination.next_page }))|url_encode) }}">Próxima</a>
+          {% else %}
+            <span class="db-card-link db-card-link-secondary is-disabled" aria-disabled="true">Próxima</span>
+          {% endif %}
+        </div>
+        <div class="dh-result-summary">Página {{ pagination.page }} de {{ pagination.total_pages }}</div>
+      </div>
+    {% endif %}
+  {% endif %}
+{% endblock %}

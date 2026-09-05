@@ -1,0 +1,6 @@
+{% set roleLabels = {
+  'user': 'Usuário',
+  'operator': 'Operador',
+  'admin': 'Administrador'
+} %}
+<span class="dh-pill dh-pill--role" data-role="{{ role }}">{{ label|default(roleLabels[role]|default(role)) }}</span>

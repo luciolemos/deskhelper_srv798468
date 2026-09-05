@@ -1,0 +1,687 @@
+{% extends 'layouts/base.twig' %}
+
+{% block title %}{{ pageTitle }} | Deskhelper{% endblock %}
+
+{% block global_topnav %}{% endblock %}
+
+{% block head %}
+  <style>
+    .dh-auth-shell {
+      min-height: 100vh;
+      padding: 56px 24px 40px;
+      position: relative;
+      background:
+        radial-gradient(circle at top left, rgba(165, 111, 17, 0.12), transparent 32%),
+        linear-gradient(180deg, rgba(250, 247, 239, 0.98), rgba(243, 246, 239, 0.98));
+    }
+    .dh-auth-layout {
+      width: min(1080px, 100%);
+      margin: 0 auto;
+      display: grid;
+      gap: 26px;
+    }
+    .dh-auth-layout:not(.dh-auth-layout--login) {
+      justify-items: center;
+    }
+    .dh-auth-layout:not(.dh-auth-layout--login) > .dh-auth-copy {
+      text-align: center;
+    }
+    .dh-auth-layout:not(.dh-auth-layout--login) > .dh-auth-copy .db-section-badge {
+      margin-inline: auto;
+    }
+    .dh-auth-layout:not(.dh-auth-layout--login) > .dh-auth-copy p {
+      margin-inline: auto;
+    }
+    .dh-auth-layout:not(.dh-auth-layout--login) > .dh-auth-form-shell {
+      width: min(100%, 980px);
+    }
+    .dh-auth-layout--login {
+      gap: 20px;
+      justify-items: center;
+      align-content: center;
+      min-height: calc(100vh - 96px);
+    }
+    .dh-auth-layout--login > .dh-auth-copy {
+      text-align: center;
+      max-width: 760px;
+    }
+    .dh-auth-layout--login > .dh-auth-copy .db-section-badge {
+      margin-inline: auto;
+    }
+    .dh-auth-layout--login > .dh-auth-copy p {
+      margin-inline: auto;
+      max-width: none;
+    }
+    .dh-auth-copy {
+      padding: 0;
+      max-width: 760px;
+    }
+    .dh-auth-brand {
+      display: grid;
+      justify-items: center;
+      gap: 8px;
+      margin-bottom: 18px;
+    }
+    .dh-auth-brand--floating {
+      position: absolute;
+      top: 28px;
+      left: 28px;
+      width: 68px;
+      justify-items: center;
+      text-align: center;
+      gap: 6px;
+      margin: 0;
+      z-index: 2;
+    }
+    .dh-auth-brand .db-om-logo {
+      width: 68px;
+      height: 68px;
+      margin-left: 0;
+      margin-right: 0;
+    }
+    .dh-auth-brand .db-brand {
+      margin: 0;
+      white-space: nowrap;
+    }
+    .dh-auth-brand .db-caption {
+      margin: 0;
+      opacity: .82;
+      white-space: nowrap;
+    }
+    .dh-auth-copy .db-section-badge {
+      margin-bottom: 14px;
+    }
+    .dh-auth-copy h1 {
+      margin: 0 0 14px;
+      font-size: clamp(2rem, 4vw, 3.3rem);
+      line-height: 0.96;
+      letter-spacing: -0.05em;
+      color: #1f2e18;
+    }
+    .dh-auth-copy p {
+      margin: 0 0 14px;
+      color: rgba(27, 38, 24, 0.78);
+      max-width: 52ch;
+      font-size: 1rem;
+      line-height: 1.6;
+    }
+    .dh-auth-copy-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 18px;
+      flex-wrap: wrap;
+    }
+    .dh-auth-copy-row p {
+      margin: 0;
+    }
+    .dh-auth-copy-side {
+      max-width: 30ch;
+      color: rgba(27, 38, 24, 0.72);
+      font-size: 0.95rem;
+      line-height: 1.55;
+    }
+    .dh-auth-copy p.is-single-line {
+      max-width: none;
+      white-space: normal;
+    }
+    .dh-auth-mobile-note {
+      display: none;
+      margin: 2px 0 0;
+      color: rgba(27, 38, 24, 0.62);
+      font-size: 0.72rem;
+      line-height: 1.45;
+      text-align: center;
+    }
+    .dh-auth-copy p.is-register-copy {
+      max-width: none;
+      white-space: normal;
+    }
+    .dh-auth-points {
+      display: grid;
+      gap: 14px;
+      margin-top: 8px;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+    .dh-auth-points--stacked {
+      grid-template-columns: 1fr;
+      margin-top: 0;
+    }
+    .dh-auth-point {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 12px 14px;
+      border: 1px solid rgba(0, 0, 0, 0.06);
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.72);
+    }
+    .dh-auth-point i {
+      color: #405629;
+      font-size: 1rem;
+      margin-top: 2px;
+    }
+    .dh-auth-form-shell {
+      display: grid;
+      gap: 18px;
+      padding: 22px 24px 24px;
+      border: 1px solid rgba(0, 0, 0, 0.07);
+      border-radius: 22px;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.95), rgba(247,248,243,.96));
+      box-shadow: 0 16px 34px rgba(19, 31, 14, 0.08);
+    }
+    .dh-auth-form {
+      display: grid;
+      gap: 1.15rem;
+    }
+    .dh-auth-form label,
+    .dh-auth-form .db-password-field {
+      display: grid;
+      gap: 0.48rem;
+      min-width: 0;
+    }
+    .dh-auth-form label > span {
+      color: var(--muted);
+      font-size: 0.75rem;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+    .dh-auth-required-note {
+      margin: 0;
+      color: rgba(27, 38, 24, 0.68);
+      font-size: 0.78rem;
+      line-height: 1.4;
+    }
+    .dh-auth-required-mark {
+      color: #9a351f;
+      margin-left: 0.16rem;
+    }
+    .dh-auth-help-link {
+      margin: -0.45rem 0 0;
+      text-align: right;
+      font-size: 0.82rem;
+    }
+    .dh-auth-help-link a {
+      color: var(--accent-strong);
+      font-weight: 700;
+    }
+    .dh-auth-reset-notice {
+      display: grid;
+      grid-template-columns: 38px minmax(0, 1fr);
+      gap: 12px;
+      align-items: start;
+      padding: 14px 16px;
+      border: 1px solid rgba(42, 126, 88, 0.28);
+      border-radius: 14px;
+      background: rgba(42, 126, 88, 0.12);
+      color: #1d573d;
+    }
+    .dh-auth-reset-notice > i {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 38px;
+      height: 38px;
+      border-radius: 999px;
+      background: rgba(42, 126, 88, 0.17);
+      font-size: 1.15rem;
+    }
+    .dh-auth-reset-notice strong,
+    .dh-auth-reset-notice span {
+      display: block;
+    }
+    .dh-auth-reset-notice strong {
+      margin-bottom: 3px;
+      font-size: 0.94rem;
+    }
+    .dh-auth-reset-notice span {
+      font-size: 0.84rem;
+      line-height: 1.45;
+    }
+    .dh-auth-form .db-contact-grid {
+      gap: 1rem;
+    }
+    .dh-auth-grid--triple {
+      display: grid;
+      grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.45fr) minmax(0, 1fr);
+      gap: 1rem;
+    }
+    .dh-auth-grid--double {
+      display: grid;
+      grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+      gap: 1rem;
+    }
+    .dh-auth-field-wrap {
+      position: relative;
+      min-width: 0;
+      max-width: 100%;
+    }
+    .dh-auth-field-wrap i {
+      position: absolute;
+      left: 0.95rem;
+      top: 50%;
+      transform: translateY(-50%);
+      color: color-mix(in srgb, var(--accent) 70%, var(--muted));
+      font-size: 0.98rem;
+      pointer-events: none;
+    }
+    .dh-auth-field-wrap .db-password-toggle i {
+      position: static;
+      transform: none;
+      color: inherit;
+      font-size: inherit;
+    }
+    .dh-auth-form input {
+      width: 100%;
+      max-width: 100%;
+      min-width: 0;
+      min-height: 42px;
+      border-radius: 12px;
+      border: 1px solid color-mix(in srgb, var(--accent) 14%, var(--border));
+      background: rgba(255, 255, 255, 0.92);
+      color: var(--text);
+      font-size: 0.9rem;
+      transition: border-color 140ms ease, box-shadow 140ms ease, background-color 140ms ease;
+    }
+    .dh-auth-form select {
+      width: 100%;
+      max-width: 100%;
+      min-width: 0;
+      min-height: 42px;
+      border-radius: 12px;
+      border: 1px solid color-mix(in srgb, var(--accent) 14%, var(--border));
+      background: rgba(255, 255, 255, 0.92);
+      color: var(--text);
+      font-size: 0.9rem;
+      transition: border-color 140ms ease, box-shadow 140ms ease, background-color 140ms ease;
+    }
+    .dh-auth-field-wrap input {
+      padding-left: 2.55rem;
+    }
+    .dh-auth-form input:focus,
+    .dh-auth-form select:focus {
+      outline: none;
+      border-color: color-mix(in srgb, var(--accent) 44%, var(--border));
+      box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 12%, transparent);
+      background: #ffffff;
+    }
+    .dh-auth-form .db-contact-actions {
+      display: flex;
+      align-items: stretch;
+      justify-content: flex-end;
+      gap: 10px;
+    }
+    .dh-auth-form .db-contact-actions .db-card-link {
+      flex: 0 1 auto;
+    }
+    @media (max-width: 980px) {
+      .dh-auth-shell {
+        padding-top: 40px;
+      }
+      .dh-auth-brand--floating {
+        position: static;
+        width: 100%;
+        margin: 0 auto 10px;
+        justify-items: center;
+        text-align: center;
+      }
+      .dh-auth-layout--login {
+        gap: 18px;
+        min-height: auto;
+      }
+      .dh-auth-copy {
+        padding: 0;
+        max-width: none;
+      }
+      .dh-auth-copy-row {
+        display: grid;
+        gap: 10px;
+      }
+      .dh-auth-points {
+        grid-template-columns: 1fr;
+      }
+      .dh-auth-grid--triple {
+        grid-template-columns: 1fr;
+      }
+      .dh-auth-grid--double {
+        grid-template-columns: 1fr;
+      }
+    }
+    @media (min-width: 641px) and (max-width: 980px) {
+      .dh-auth-shell--login {
+        display: grid;
+        grid-template-rows: auto minmax(0, 1fr);
+      }
+      .dh-auth-layout:not(.dh-auth-layout--login) > .dh-auth-copy {
+        width: min(100%, 520px);
+      }
+      .dh-auth-layout:not(.dh-auth-layout--login) > .dh-auth-copy p {
+        max-width: 52ch;
+      }
+      .dh-auth-layout--login {
+        min-height: 100%;
+        align-content: center;
+        padding-block: 24px;
+      }
+    }
+    @media (max-width: 640px) {
+      .dh-auth-shell {
+        padding: 24px 16px 28px;
+      }
+      .dh-auth-copy h1 {
+        font-size: clamp(1.65rem, 6vw, 3.3rem);
+        white-space: nowrap;
+      }
+      .dh-auth-form-shell {
+        padding: 18px 16px 18px;
+      }
+      .dh-auth-form .db-contact-actions {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 10px;
+      }
+      .dh-auth-form .db-contact-actions .db-card-link {
+        width: 100%;
+      }
+      .dh-auth-layout--login > .dh-auth-copy p.is-single-line {
+        display: none;
+      }
+      .dh-auth-mobile-note {
+        display: block;
+      }
+    }
+  </style>
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      var phoneInput = document.querySelector('input[name="phone"]');
+      var uppercaseInputs = document.querySelectorAll('[data-force-uppercase]');
+
+      var formatPhone = function (value) {
+        var digits = String(value || '').replace(/\D+/g, '').slice(0, 11);
+        if (digits.length <= 2) {
+          return digits;
+        }
+        if (digits.length <= 6) {
+          return '(' + digits.slice(0, 2) + ') ' + digits.slice(2);
+        }
+        if (digits.length <= 10) {
+          return '(' + digits.slice(0, 2) + ') ' + digits.slice(2, 6) + '-' + digits.slice(6);
+        }
+
+        return '(' + digits.slice(0, 2) + ') ' + digits.slice(2, 7) + '-' + digits.slice(7);
+      };
+
+      var syncPhoneMask = function () {
+        phoneInput.value = formatPhone(phoneInput.value);
+      };
+
+      if (phoneInput) {
+        phoneInput.addEventListener('input', syncPhoneMask);
+        phoneInput.addEventListener('blur', syncPhoneMask);
+        syncPhoneMask();
+      }
+
+      uppercaseInputs.forEach(function (input) {
+        var syncUppercase = function () {
+          input.value = input.value.toLocaleUpperCase('pt-BR');
+        };
+
+        input.addEventListener('input', syncUppercase);
+        input.addEventListener('blur', syncUppercase);
+        syncUppercase();
+      });
+    });
+  </script>
+{% endblock %}
+
+{% block content %}
+<main class="dh-auth-shell{{ formMode != 'register' ? ' dh-auth-shell--login' : '' }}">
+  {% if formMode in ['login', 'register', 'forgot', 'reset'] %}
+    <div class="dh-auth-brand dh-auth-brand--floating" aria-label="Identidade do deskhelper">
+      <img
+        class="db-om-logo"
+        src="{{ asset_base_path }}/assets/img/om.png"
+        alt="Deskhelper"
+      >
+      <h2 class="db-brand">16º BI Mtz</h2>
+      <p class="db-caption">Service Desk Interno</p>
+    </div>
+  {% endif %}
+  <div class="dh-auth-layout{{ formMode != 'register' ? ' dh-auth-layout--login' : '' }}">
+    {% if formMode != 'register' %}
+      <section class="dh-auth-copy" aria-label="Apresentação do deskhelper">
+        <span class="db-section-badge">{{ badge|default('Deskhelper') }}</span>
+        <h1>{{ pageTitle }}</h1>
+        <p class="is-single-line">{{ pageSubtitle }}</p>
+      </section>
+
+      <section class="dh-auth-form-shell" aria-label="Formulário de autenticação" style="width:min(100%, 520px);">
+      {% else %}
+        <section class="dh-auth-copy" aria-label="Apresentação do deskhelper">
+          <span class="db-section-badge">{{ badge|default('Deskhelper') }}</span>
+          <h1>{{ pageTitle }}</h1>
+          <p class="is-register-copy">{{ pageSubtitle }}</p>
+        </section>
+
+        <section class="dh-auth-form-shell" aria-label="Formulário de autenticação">
+      {% endif %}
+
+      {% if flashMessage|default('') %}
+        {% if formMode == 'forgot' %}
+          <div class="dh-auth-reset-notice" role="status" aria-live="polite">
+            <i class="bi bi-envelope-check" aria-hidden="true"></i>
+            <div>
+              <strong>Link solicitado</strong>
+              <span>{{ flashMessage }} Verifique também a pasta de spam ou lixo eletrônico.</span>
+            </div>
+          </div>
+        {% else %}
+          <div class="db-admin-flash" role="status">{{ flashMessage }}</div>
+        {% endif %}
+      {% endif %}
+
+      {% if formError|default('') %}
+        <div class="db-admin-flash" role="alert">{{ formError }}</div>
+      {% endif %}
+
+      <form class="db-contact-form dh-auth-form" method="post" action="{{ formAction }}" hx-boost="false" novalidate>
+        <input type="hidden" name="csrf_token" value="{{ csrfToken|default('') }}">
+        {% if formMode == 'reset' %}
+          <input type="hidden" name="token" value="{{ resetToken|default('') }}">
+        {% endif %}
+
+        {% if formMode == 'register' %}
+          <p class="dh-auth-required-note"><span class="dh-auth-required-mark" aria-hidden="true">*</span> Todos os campos são obrigatórios.</p>
+          <div class="dh-auth-grid--triple">
+            <label>
+              <span>POSTO/GRAD <span class="dh-auth-required-mark" aria-hidden="true">*</span></span>
+              <div>
+                <select name="rank" required>
+                  <option value="">Selecione</option>
+                  {% for rankOption in [
+                    'General de Exército',
+                    'General de Divisão',
+                    'General de Brigada',
+                    'Coronel',
+                    'Tenente-Coronel',
+                    'Major',
+                    'Capitão',
+                    '1º Tenente',
+                    '2º Tenente',
+                    'Aspirante a Oficial',
+                    'Subtenente',
+                    '1º Sargento',
+                    '2º Sargento',
+                    '3º Sargento',
+                    'Cabo',
+                    'Soldado'
+                  ] %}
+                    {% set rankShort = {
+                      'General de Exército': 'Gen Ex',
+                      'General de Divisão': 'Gen Div',
+                      'General de Brigada': 'Gen Bda',
+                      'Coronel': 'Cel',
+                      'Tenente-Coronel': 'Ten Cel',
+                      'Major': 'Maj',
+                      'Capitão': 'Cap',
+                      '1º Tenente': '1º Ten',
+                      '2º Tenente': '2º Ten',
+                      'Aspirante a Oficial': 'Asp Of',
+                      'Subtenente': 'ST',
+                      '1º Sargento': '1º Sgt',
+                      '2º Sargento': '2º Sgt',
+                      '3º Sargento': '3º Sgt',
+                      'Cabo': 'Cb',
+                      'Soldado': 'Sd'
+                    } %}
+                    <option value="{{ rankOption }}" {{ form.rank|default('') == rankOption ? 'selected' : '' }}>{{ rankShort[rankOption]|default(rankOption) }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+            </label>
+            <label>
+              <span>Nome de guerra <span class="dh-auth-required-mark" aria-hidden="true">*</span></span>
+              <div class="dh-auth-field-wrap">
+                <i class="bi bi-person" aria-hidden="true"></i>
+                <input type="text" name="name" value="{{ form.name|default('') }}" maxlength="120" placeholder="C. SILVA" data-force-uppercase required>
+              </div>
+            </label>
+            <label>
+              <span>SU <span class="dh-auth-required-mark" aria-hidden="true">*</span></span>
+              <div>
+                <select name="sector" required>
+                  <option value="">Selecione</option>
+                  {% for sectorOption in [
+                    '1ª Cia Fuz',
+                    '2ª Cia Fuz',
+                    'Cia C Ap',
+                    'NPOR',
+                    'OCP',
+                    'ProFEsp',
+                    'EM',
+                    'CFGS',
+                    'Banda de Música'
+                  ] %}
+                    <option value="{{ sectorOption }}" {{ form.sector|default('') == sectorOption ? 'selected' : '' }}>{{ sectorOption }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+            </label>
+          </div>
+          <div class="dh-auth-grid--double">
+            <label>
+              <span>Telefone <span class="dh-auth-required-mark" aria-hidden="true">*</span></span>
+              <div class="dh-auth-field-wrap">
+                <i class="bi bi-telephone" aria-hidden="true"></i>
+                <input
+                  type="text"
+                  name="phone"
+                  value="{{ form.phone|default('') }}"
+                  maxlength="40"
+                  inputmode="tel"
+                  pattern="[\d\s()+-]{10,40}"
+                  placeholder="(67) 99999-9999"
+                  required
+                >
+              </div>
+            </label>
+            <label>
+              <span>E-mail <span class="dh-auth-required-mark" aria-hidden="true">*</span></span>
+              <div class="dh-auth-field-wrap">
+                <i class="bi bi-envelope" aria-hidden="true"></i>
+                <input type="email" name="email" value="{{ form.email|default('') }}" maxlength="160" required>
+              </div>
+            </label>
+          </div>
+        {% elseif formMode == 'forgot' or formMode == 'login' %}
+          <label>
+            <span>E-mail</span>
+            <div class="dh-auth-field-wrap">
+              <i class="bi bi-envelope" aria-hidden="true"></i>
+              <input type="email" name="email" value="{{ form.email|default('') }}" maxlength="160" required autofocus>
+            </div>
+          </label>
+        {% endif %}
+
+        {% if formMode == 'register' %}
+          <div class="dh-auth-grid--double">
+            <div class="db-password-field">
+              <label for="deskhelper-auth-password-1"><span>Senha <span class="dh-auth-required-mark" aria-hidden="true">*</span></span></label>
+              <div class="dh-auth-field-wrap db-password-wrap">
+                <i class="bi bi-lock" aria-hidden="true"></i>
+                <input id="deskhelper-auth-password-1" class="db-form-input" type="password" name="password" minlength="6" data-password-input required>
+                <button type="button" class="db-password-toggle" data-password-toggle data-password-toggle-icon aria-pressed="false" aria-label="Mostrar senha" title="Mostrar senha">
+                  <i class="bi bi-eye" aria-hidden="true"></i>
+                </button>
+              </div>
+            </div>
+            <div class="db-password-field">
+              <label for="deskhelper-auth-password-2"><span>Confirmar senha <span class="dh-auth-required-mark" aria-hidden="true">*</span></span></label>
+              <div class="dh-auth-field-wrap db-password-wrap">
+                <i class="bi bi-shield-lock" aria-hidden="true"></i>
+                <input id="deskhelper-auth-password-2" class="db-form-input" type="password" name="password_confirm" minlength="6" data-password-input required>
+                <button type="button" class="db-password-toggle" data-password-toggle data-password-toggle-icon aria-pressed="false" aria-label="Mostrar senha" title="Mostrar senha">
+                  <i class="bi bi-eye" aria-hidden="true"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+        {% elseif formMode == 'reset' %}
+          <div class="dh-auth-grid--double">
+            <div class="db-password-field">
+              <label for="deskhelper-reset-password-1"><span>Nova senha</span></label>
+              <div class="dh-auth-field-wrap db-password-wrap">
+                <i class="bi bi-lock" aria-hidden="true"></i>
+                <input id="deskhelper-reset-password-1" class="db-form-input" type="password" name="password" minlength="8" autocomplete="new-password" data-password-input required {{ resetTokenValid|default(false) ? '' : 'disabled' }}>
+                <button type="button" class="db-password-toggle" data-password-toggle data-password-toggle-icon aria-pressed="false" aria-label="Mostrar senha" title="Mostrar senha" {{ resetTokenValid|default(false) ? '' : 'disabled' }}>
+                  <i class="bi bi-eye" aria-hidden="true"></i>
+                </button>
+              </div>
+            </div>
+            <div class="db-password-field">
+              <label for="deskhelper-reset-password-2"><span>Confirmar senha</span></label>
+              <div class="dh-auth-field-wrap db-password-wrap">
+                <i class="bi bi-shield-lock" aria-hidden="true"></i>
+                <input id="deskhelper-reset-password-2" class="db-form-input" type="password" name="password_confirm" minlength="8" autocomplete="new-password" data-password-input required {{ resetTokenValid|default(false) ? '' : 'disabled' }}>
+                <button type="button" class="db-password-toggle" data-password-toggle data-password-toggle-icon aria-pressed="false" aria-label="Mostrar senha" title="Mostrar senha" {{ resetTokenValid|default(false) ? '' : 'disabled' }}>
+                  <i class="bi bi-eye" aria-hidden="true"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+        {% elseif formMode == 'login' %}
+          <div class="db-password-field">
+            <label for="deskhelper-auth-password-3"><span>Senha</span></label>
+            <div class="dh-auth-field-wrap db-password-wrap">
+              <i class="bi bi-lock" aria-hidden="true"></i>
+              <input id="deskhelper-auth-password-3" class="db-form-input" type="password" name="password" minlength="6" data-password-input required>
+              <button type="button" class="db-password-toggle" data-password-toggle data-password-toggle-icon aria-pressed="false" aria-label="Mostrar senha" title="Mostrar senha">
+                <i class="bi bi-eye" aria-hidden="true"></i>
+              </button>
+            </div>
+          </div>
+        {% endif %}
+
+        {% if formMode != 'reset' or resetTokenValid|default(false) %}
+        <div class="db-contact-actions">
+          {% if formMode == 'login' and secondaryHref|default('') %}
+            <a class="db-card-link db-card-link-secondary" href="{{ secondaryHref }}">{{ secondaryLabel }}</a>
+            <button class="db-card-link" type="submit">{{ submitLabel }}</button>
+          {% else %}
+            <button class="db-card-link" type="submit">{{ submitLabel }}</button>
+            {% if secondaryHref|default('') %}
+              <a class="db-card-link db-card-link-secondary" href="{{ secondaryHref }}">{{ secondaryLabel }}</a>
+            {% endif %}
+          {% endif %}
+        </div>
+        {% endif %}
+      </form>
+      {% if formMode == 'login' %}
+        <p class="dh-auth-help-link"><a href="{{ app_url('/forgot-password') }}">Esqueci minha senha</a></p>
+        <p class="dh-auth-mobile-note">{{ pageSubtitle }}</p>
+      {% endif %}
+        </section>
+  </div>
+</main>
+{% endblock %}

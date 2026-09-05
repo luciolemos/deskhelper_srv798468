@@ -1,0 +1,286 @@
+<?php
+
+declare(strict_types=1);
+
+$configuredBasePath = trim((string) ($_ENV['APP_BASE_PATH'] ?? ''));
+$appBasePath = $configuredBasePath === '' || $configuredBasePath === '/'
+    ? ''
+    : '/' . trim($configuredBasePath, '/');
+
+return [
+    'title' => '16º BI Mtz',
+    'subtitle' => '16º BI Mtz',
+    'sections' => [
+        'secao-1' => [
+            'label' => '1ª Seção',
+            'description' => 'Pessoal',
+            'group' => '1ª Seção',
+        ],
+        'secao-2' => [
+            'label' => '2ª Seção',
+            'description' => 'Inteligência',
+            'group' => '2ª Seção',
+        ],
+        'secao-3' => [
+            'label' => '3ª Seção',
+            'description' => 'Formação e Aperfeiçoamento',
+            'group' => '3ª Seção',
+        ],
+        'secao-4' => [
+            'label' => '4ª Seção',
+            'description' => 'Logística',
+            'group' => '4ª Seção',
+        ],
+        'secao-5' => [
+            'label' => 'SFPC',
+            'description' => 'Fiscalização de Produtos Controlados',
+            'group' => 'SFPC',
+        ],        
+        'fisc-adm' => [
+            'label' => 'Fisc Adm',
+            'description' => 'Administração patrimonial e Finanças',
+            'group' => 'Fisc Adm',
+        ],
+        'intranets' => [
+            'label' => 'Intranets',
+            'description' => 'Intranets das OM parceiras',
+            'group' => 'Intranets',
+        ],
+        'links-interesse' => [
+            'label' => 'Links de interesse',
+            'description' => 'Acessos externos institucionais de referência',
+            'group' => 'Links de interesse',
+        ],
+    ],
+    'cardsBySection' => [
+        'secao-1' => [
+            [
+                'title' => 'DGP',
+                'href' => 'https://dgp.eb.mil.br/',
+                'external' => true,
+                'icon' => 'bi-globe2',
+                'status' => 'Externo',
+                'description' => 'Departamento-Geral do Pessoal',
+                'order' => 1,
+            ],
+            [
+                'title' => 'DAPROM',
+                'href' => 'https://daprom.eb.mil.br/',
+                'external' => true,
+                'icon' => 'bi-globe2',
+                'status' => 'Externo',
+                'description' => 'Diretoria de Avaliação e Promoções',
+                'order' => 2,
+            ],
+            [
+                'title' => 'DCEM',
+                'href' => 'https://www.dcem.eb.mil.br/',
+                'external' => true,
+                'icon' => 'bi-globe2',
+                'status' => 'Externo',
+                'description' => 'Controle de Efetivos e Movimentações',
+                'order' => 3,
+            ],
+                        [
+                'title' => 'SPED',
+                 'href' => 'http: //10.46.40.35',
+                'external' => true,
+                'icon' => 'bi-globe2',
+                'status' => 'Sistema',
+                'description' => 'Sistema do Protocolo Eletrônico de Documentos',
+                'order' => 4,
+            ],
+                        [
+                'title' => 'SISBOL',
+                'href' => 'http: //10.46.40.33',
+                'external' => true,
+                'icon' => 'bi-globe2',
+                'status' => 'Sistema',
+                'description' => 'Sistema do Boletim Eletrônico do Exército',
+                'order' => 5,
+            ],
+        ],
+        'secao-2' => [
+            [
+                'title' => 'Demandas recebidas',
+                'href' => $appBasePath . '/subsistemas/secao-2/demandas-recebidas',
+                'status' => 'Interno',
+                'description' => 'Total de demandas registradas no período.',
+                'order' => 1,
+            ],
+            [
+                'title' => 'Backlog ativo',
+                'href' => $appBasePath . '/subsistemas/secao-2/backlog-ativo',
+                'status' => 'Externo',
+                'description' => 'Chamados que aguardam execução.',
+                'order' => 2,
+            ],
+            [
+                'title' => 'SLA cumprido',
+                'href' => $appBasePath . '/subsistemas/secao-2/sla-cumprido',
+                'status' => 'Interno',
+                'description' => 'Percentual de entregas dentro do prazo.',
+                'order' => 3,
+            ],
+        ],
+        'secao-3' => [
+            [
+                'title' => 'Processos auditados',
+                'href' => $appBasePath . '/subsistemas/secao-3/processos-auditados',
+                'status' => 'Interno',
+                'description' => 'Processos revisados e concluídos no mês.',
+                'order' => 1,
+            ],
+            [
+                'title' => 'Conformidade documental',
+                'href' => $appBasePath . '/subsistemas/secao-3/conformidade-documental',
+                'status' => 'Interno',
+                'description' => 'Documentos dentro do padrão exigido.',
+                'order' => 2,
+            ],
+            [
+                'title' => 'Pendências críticas',
+                'href' => $appBasePath . '/subsistemas/secao-3/pendencias-criticas',
+                'status' => 'Sistema',
+                'description' => 'Pendências classificadas como alta prioridade.',
+                'order' => 3,
+            ],
+        ],
+        'secao-4' => [
+            [
+                'title' => 'Execução orçamentária',
+                'href' => $appBasePath . '/subsistemas/secao-4/execucao-orcamentaria',
+                'status' => 'Interno',
+                'description' => 'Percentual executado frente ao previsto anual.',
+                'order' => 1,
+            ],
+            [
+                'title' => 'Projetos em andamento',
+                'href' => $appBasePath . '/subsistemas/secao-4/projetos-andamento',
+                'status' => 'Interno',
+                'description' => 'Projetos ativos com acompanhamento público.',
+                'order' => 2,
+            ],
+            [
+                'title' => 'Risco operacional',
+                'href' => $appBasePath . '/subsistemas/secao-4/risco-operacional',
+                'status' => 'Interno',
+                'description' => 'Classificação consolidada de risco da seção.',
+                'order' => 3,
+            ],
+        ],
+         'secao-5' => [
+            [
+                'title' => 'Execução orçamentária',
+                'href' => $appBasePath . '/subsistemas/secao-5/execucao-orcamentaria',
+                'status' => 'Interno',
+                'description' => 'Percentual executado frente ao previsto anual.',
+                'order' => 1,
+            ],
+            [
+                'title' => 'Projetos em andamento',
+                'href' => $appBasePath . '/subsistemas/secao-4/projetos-andamento',
+                'status' => 'Interno',
+                'description' => 'Projetos ativos com acompanhamento público.',
+                'order' => 2,
+            ],
+            [
+                'title' => 'Risco operacional',
+                'href' => $appBasePath . '/subsistemas/secao-4/risco-operacional',
+                'status' => 'Interno',
+                'description' => 'Classificação consolidada de risco da seção.',
+                'order' => 3,
+            ],
+        ],
+        'fisc-adm' => [
+            [
+                'title' => 'Arrecadação realizada',
+                'href' => $appBasePath . '/subsistemas/fisc-adm/arrecadacao-realizada',
+                'status' => 'Interno',
+                'description' => 'Valor acumulado de arrecadação no período.',
+                'order' => 1,
+            ],
+            [
+                'title' => 'Despesas liquidadas',
+                'href' => $appBasePath . '/subsistemas/fisc-adm/despesas-liquidadas',
+                'status' => 'Interno',
+                'description' => 'Total de despesas liquidadas até a data.',
+                'order' => 2,
+            ],
+            [
+                'title' => 'Transparência fiscal',
+                'href' => $appBasePath . '/subsistemas/fisc-adm/transparencia-fiscal',
+                'status' => 'Interno',
+                'description' => 'Publicações e dados disponíveis no prazo legal.',
+                'order' => 3,
+            ],
+        ],
+         'intranets' => [
+            [
+                'title' => '7ª Bda Inf Mtz',
+                'href' => 'http://10.57.40.55/',               
+                 'external' => true,
+                'icon' => 'bi-globe2',
+                'status' => 'Externo',
+                'description' => '7ª Brigada de Infantaria Motorizada',
+                'order' => 1,
+            ],
+            [
+                'title' => 'HGuN',
+                'href' => 'http://10.57.40.55/',               
+                 'external' => true,
+                'icon' => 'bi-globe2',
+                'status' => 'Externo',
+                'description' => 'Hospital Geral de Natal',
+                'order' => 2,
+            ],
+            [
+                'title' => '24ª Base Adm Guarnção',
+                'href' => 'http://10.57.40.55/',                
+                'external' => true,
+                'icon' => 'bi-globe2',
+                'status' => 'Externo',
+                'description' => 'Base de Apoio Administrativo da Guarnição',
+                'order' => 3,
+            ],
+        ],
+        'links-interesse' => [
+            [
+                'title' => 'Marinha do Brasil',
+                'href' => 'https://www.marinha.mil.br/',
+                'external' => true,
+                'icon' => 'bi-life-preserver',
+                'status' => 'Externo',
+                'description' => 'Acesso ao portal institucional da Marinha do Brasil.',
+                'order' => 1,
+            ],
+            [
+                'title' => 'Força Aérea Brasileira',
+                'href' => 'https://www.fab.mil.br/',
+                'external' => true,
+                'icon' => 'bi-airplane',
+                'status' => 'Externo',
+                'description' => 'Acesso ao portal institucional da Aeronáutica.',
+                'order' => 2,
+            ],
+            [
+                'title' => 'Ministério da Defesa',
+                'href' => 'https://www.gov.br/defesa/pt-br',
+                'external' => true,
+                'icon' => 'bi-shield',
+                'status' => 'Externo',
+                'description' => 'Acesso ao portal oficial do Ministério da Defesa.',
+                'order' => 3,
+            ],
+            [
+                'title' => 'Exército Brasileiro',
+                'href' => 'https://www.eb.mil.br/',
+                'external' => true,
+                'icon' => 'bi-award',
+                'status' => 'Externo',
+                'description' => 'Acesso ao portal institucional do Exército Brasileiro.',
+                'order' => 4,
+            ],
+        ],
+    ],
+];

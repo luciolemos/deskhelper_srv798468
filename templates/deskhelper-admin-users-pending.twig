@@ -1,0 +1,307 @@
+{% extends 'layouts/deskhelper-dashboard.twig' %}
+
+{% block title %}Usuários Pendentes | Deskhelper{% endblock %}
+
+{% block head %}
+  <style>
+    .dh-pending-users-filter-grid {
+      grid-template-columns: minmax(0, 1.2fr) minmax(0, 1.25fr) minmax(0, 1fr);
+    }
+    .dh-pending-users-summary {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .dh-pending-users-table {
+      table-layout: fixed;
+    }
+    #pending-list .db-table-wrapper {
+      max-width: 100%;
+      overflow-x: auto;
+    }
+    @media (max-width: 980px) {
+      .dh-pending-users-table {
+        min-width: 1100px;
+      }
+    }
+    @media (max-width: 640px) {
+      .dh-pending-users-filter-grid {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
+    .dh-pending-users-table th:nth-child(1),
+    .dh-pending-users-table td:nth-child(1) {
+      width: 10%;
+    }
+    .dh-pending-users-table th:nth-child(2),
+    .dh-pending-users-table td:nth-child(2) {
+      width: 12%;
+    }
+    .dh-pending-users-table th:nth-child(3),
+    .dh-pending-users-table td:nth-child(3) {
+      width: 20%;
+    }
+    .dh-pending-users-table th:nth-child(4),
+    .dh-pending-users-table td:nth-child(4) {
+      width: 7%;
+    }
+    .dh-pending-users-table th:nth-child(5),
+    .dh-pending-users-table td:nth-child(5) {
+      width: 10%;
+    }
+    .dh-pending-users-table th:nth-child(6),
+    .dh-pending-users-table td:nth-child(6) {
+      width: 8%;
+    }
+    .dh-pending-users-table th:nth-child(7),
+    .dh-pending-users-table td:nth-child(7) {
+      width: 31%;
+    }
+    .dh-pending-users-table td:nth-child(7) {
+      text-align: center;
+    }
+    .dh-pending-users-table td:nth-child(3) {
+      overflow-wrap: anywhere;
+      word-break: break-word;
+      white-space: normal;
+    }
+    .dh-pending-users-table td:nth-child(4),
+    .dh-pending-users-table td:nth-child(5) {
+      white-space: normal;
+      overflow-wrap: anywhere;
+      word-break: break-word;
+    }
+    .dh-pending-users-table td:nth-child(6) {
+      white-space: normal;
+      font-size: .84rem;
+      line-height: 1.35;
+    }
+    .dh-pending-users-actions {
+      flex-wrap: nowrap !important;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+    }
+    .dh-pending-users-actions form {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: nowrap;
+    }
+    .dh-pending-users-actions select,
+    .dh-pending-users-actions button {
+      white-space: nowrap;
+    }
+    .dh-pending-users-actions .db-card-link {
+      min-height: 42px;
+      padding-top: 0;
+      padding-bottom: 0;
+      flex: 0 0 auto;
+    }
+    .dh-pending-users-actions select {
+      width: 132px;
+      min-width: 132px;
+      min-height: 42px;
+      border-radius: 12px;
+      border: 1px solid color-mix(in srgb, var(--accent) 14%, var(--border));
+      background: rgba(255, 255, 255, 0.92);
+      color: var(--text);
+      font-size: 0.9rem;
+      padding: 0 0.85rem;
+      transition: border-color 140ms ease, box-shadow 140ms ease, background-color 140ms ease;
+    }
+    .dh-pending-users-actions select:focus {
+      outline: none;
+      border-color: color-mix(in srgb, var(--accent) 44%, var(--border));
+      box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 12%, transparent);
+      background: #ffffff;
+    }
+  </style>
+{% endblock %}
+
+{% block deskhelper_shell_title %}Usuários pendentes{% endblock %}
+{% block deskhelper_shell_subtitle %}Aprove, rejeite e atribua o perfil inicial do novo usuário.{% endblock %}
+
+{% block deskhelper_main %}
+  {% set sectorOptions = ['1ª Cia Fuz', '2ª Cia Fuz', 'Cia C Ap', 'NPOR', 'CFGS', 'Banda de Música'] %}
+  {% set rankShort = {
+    'General de Exército': 'Gen Ex',
+    'General de Divisão': 'Gen Div',
+    'General de Brigada': 'Gen Bda',
+    'Coronel': 'Cel',
+    'Tenente-Coronel': 'Ten Cel',
+    'Major': 'Maj',
+    'Capitão': 'Cap',
+    '1º Tenente': '1º Ten',
+    '2º Tenente': '2º Ten',
+    'Aspirante a Oficial': 'Asp Of',
+    'Subtenente': 'ST',
+    '1º Sargento': '1º Sgt',
+    '2º Sargento': '2º Sgt',
+    '3º Sargento': '3º Sgt',
+    'Cabo': 'Cb',
+    'Soldado': 'Sd'
+  } %}
+  {% set perPageOptions = ['5', '10', '15', '20', '25', '50', '100', 'all'] %}
+  {% set currentDirection = direction|default('desc') %}
+  {% set currentSort = sort|default('created_at') %}
+  {% macro sort_link(baseQuery, column, currentSort, currentDirection) %}
+    {% set nextDirection = currentSort == column and currentDirection == 'asc' ? 'desc' : 'asc' %}
+    {{ (baseQuery|merge({ sort: column, dir: nextDirection, page: 1 }))|url_encode }}
+  {% endmacro %}
+
+  {% if pendingView == 'indicators' %}
+    {% if pendingUsers is empty %}
+      <p class="db-card-subtitle">Nenhum cadastro pendente no momento.</p>
+    {% else %}
+      <div class="dh-kpi-grid dh-pending-users-summary">
+        <a class="dh-kpi-link" href="{{ app_url('admin/users/pending?view=list') }}">
+          {% include 'components/deskhelper-kpi-card.twig' with { label: 'Cadastros pendentes', value: pendingSummary.total|default(0), subtitle: 'Solicitações aguardando decisão administrativa' } %}
+        </a>
+        <a class="dh-kpi-link" href="{{ app_url('admin/users/pending?view=list&sector=__none__') }}">
+          {% include 'components/deskhelper-kpi-card.twig' with { label: 'Sem SU', value: pendingSummary.without_sector|default(0), subtitle: 'Cadastros ainda sem vinculação à subunidade' } %}
+        </a>
+        {% if pendingSectorSummary is not empty %}
+          {% for sector in pendingSectorSummary %}
+            <a class="dh-kpi-link" href="{{ app_url('admin/users/pending?view=list&sector=' ~ sector.label|url_encode) }}">
+              {% include 'components/deskhelper-kpi-card.twig' with {
+                label: sector.label,
+                value: sector.total,
+                subtitle: 'Cadastros pendentes neste setor'
+              } %}
+            </a>
+          {% endfor %}
+        {% endif %}
+      </div>
+    {% endif %}
+  {% else %}
+    <div class="dh-toolbar-inline">
+      <div class="db-contact-actions">
+        {% include 'components/deskhelper-overview-link.twig' %}
+      </div>
+    </div>
+    {% if pendingUsers is empty %}
+      <p class="db-card-subtitle">Nenhum cadastro pendente no momento.</p>
+    {% else %}
+      <form class="db-contact-form db-admin-filters dh-search-panel" method="get" action="{{ app_url('admin/users/pending') }}">
+        <input type="hidden" name="view" value="list">
+        <div class="dh-search-panel__grid dh-pending-users-filter-grid">
+          <label class="dh-search-panel__search">
+            <span class="dh-search-panel__label">Nome</span>
+            <div class="dh-search-panel__input-wrap">
+              <i class="bi bi-search" aria-hidden="true"></i>
+              <input type="text" name="name" value="{{ filters.name|default('') }}" placeholder="Filtrar por nome">
+            </div>
+          </label>
+          <label class="dh-search-panel__search">
+            <span class="dh-search-panel__label">E-mail</span>
+            <div class="dh-search-panel__input-wrap">
+              <i class="bi bi-envelope" aria-hidden="true"></i>
+              <input type="text" name="email" value="{{ filters.email|default('') }}" placeholder="Filtrar por e-mail">
+            </div>
+          </label>
+          <label class="dh-search-panel__field">
+            <span class="dh-search-panel__label">SU</span>
+            <select name="sector">
+              <option value="">Todos</option>
+              <option value="__none__" {{ filters.sector|default('') == '__none__' ? 'selected' : '' }}>Sem SU</option>
+              {% for sectorOption in sectorOptions %}
+                <option value="{{ sectorOption }}" {{ filters.sector|default('') == sectorOption ? 'selected' : '' }}>{{ sectorOption }}</option>
+              {% endfor %}
+            </select>
+          </label>
+        </div>
+        <div class="db-contact-actions dh-search-panel__actions">
+          <button class="db-card-link" type="submit">Filtrar</button>
+          <a class="db-card-link db-card-link-secondary" href="{{ app_url('admin/users/pending?view=list') }}">Limpar</a>
+        </div>
+      </form>
+      <div class="dh-list-controls">
+        <div class="dh-list-controls__group db-contact-actions">
+          <a class="db-card-link db-card-link-secondary" href="{{ app_url('admin/users/pending?view=indicators') }}">Ver indicadores</a>
+          <form method="get" action="{{ app_url('admin/users/pending') }}" style="display:inline;">
+            <input type="hidden" name="view" value="list">
+            <input type="hidden" name="name" value="{{ filters.name|default('') }}">
+            <input type="hidden" name="email" value="{{ filters.email|default('') }}">
+            <input type="hidden" name="sector" value="{{ filters.sector|default('') }}">
+            <input type="hidden" name="sort" value="{{ sort|default('created_at') }}">
+            <input type="hidden" name="dir" value="{{ direction|default('desc') }}">
+            <label class="dh-inline-select">
+              <span>Exibir</span>
+              <select name="per_page" onchange="this.form.submit()">
+                {% for option in perPageOptions %}
+                  <option value="{{ option }}" {{ pagination.per_page|default('10') == option ? 'selected' : '' }}>
+                    {{ option == 'all' ? 'Todos' : option }}
+                  </option>
+                {% endfor %}
+              </select>
+            </label>
+          </form>
+        </div>
+        <div class="dh-list-controls__summary">{{ pagination.from|default(0) }}-{{ pagination.to|default(0) }} de {{ pagination.total_items|default(pendingUsers|length) }} cadastro(s)</div>
+      </div>
+      {% set tableContent %}
+            <thead>
+              <tr>
+                <th><a href="{{ app_url('admin/users/pending?' ~ _self.sort_link(pendingUsersListQuery|default({view: 'list'}), 'rank', currentSort, currentDirection)) }}">Posto/Grad {% if currentSort == 'rank' %}<i class="bi {{ currentDirection == 'asc' ? 'bi-caret-up-fill' : 'bi-caret-down-fill' }}"></i>{% endif %}</a></th>
+                <th><a href="{{ app_url('admin/users/pending?' ~ _self.sort_link(pendingUsersListQuery|default({view: 'list'}), 'name', currentSort, currentDirection)) }}">Nome {% if currentSort == 'name' %}<i class="bi {{ currentDirection == 'asc' ? 'bi-caret-up-fill' : 'bi-caret-down-fill' }}"></i>{% endif %}</a></th>
+                <th><a href="{{ app_url('admin/users/pending?' ~ _self.sort_link(pendingUsersListQuery|default({view: 'list'}), 'email', currentSort, currentDirection)) }}">E-mail {% if currentSort == 'email' %}<i class="bi {{ currentDirection == 'asc' ? 'bi-caret-up-fill' : 'bi-caret-down-fill' }}"></i>{% endif %}</a></th>
+                <th><a href="{{ app_url('admin/users/pending?' ~ _self.sort_link(pendingUsersListQuery|default({view: 'list'}), 'sector', currentSort, currentDirection)) }}">SU {% if currentSort == 'sector' %}<i class="bi {{ currentDirection == 'asc' ? 'bi-caret-up-fill' : 'bi-caret-down-fill' }}"></i>{% endif %}</a></th>
+                <th><a href="{{ app_url('admin/users/pending?' ~ _self.sort_link(pendingUsersListQuery|default({view: 'list'}), 'phone', currentSort, currentDirection)) }}">Telefone {% if currentSort == 'phone' %}<i class="bi {{ currentDirection == 'asc' ? 'bi-caret-up-fill' : 'bi-caret-down-fill' }}"></i>{% endif %}</a></th>
+                <th><a href="{{ app_url('admin/users/pending?' ~ _self.sort_link(pendingUsersListQuery|default({view: 'list'}), 'created_at', currentSort, currentDirection)) }}">Cadastro {% if currentSort == 'created_at' %}<i class="bi {{ currentDirection == 'asc' ? 'bi-caret-up-fill' : 'bi-caret-down-fill' }}"></i>{% endif %}</a></th>
+                <th>Ações</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for pendingUser in pendingUsers %}
+                <tr>
+                  <td>{{ rankShort[pendingUser.rank|default('')] ?? pendingUser.rank|default('-') }}</td>
+                  <td>{{ pendingUser.name }}</td>
+                  <td>{{ pendingUser.email }}</td>
+                  <td>{{ pendingUser.sector|default('-') }}</td>
+                  <td>{{ pendingUser.phone|default('-') }}</td>
+                  <td>{{ pendingUser.created_at }}</td>
+                  <td>
+                    <div class="db-contact-actions dh-pending-users-actions" style="gap:8px;">
+                      <form method="post" action="{{ app_url('admin/users/approve') }}" hx-boost="false">
+                        <input type="hidden" name="csrf_token" value="{{ csrfToken|default('') }}">
+                        <input type="hidden" name="id" value="{{ pendingUser.id }}">
+                        <select name="role">
+                          <option value="user">Usuário</option>
+                          <option value="operator">Operador</option>
+                          <option value="admin">Administrador</option>
+                        </select>
+                        <button class="db-card-link" type="submit">Aprovar</button>
+                      </form>
+                      <form method="post" action="{{ app_url('admin/users/reject') }}" hx-boost="false">
+                        <input type="hidden" name="csrf_token" value="{{ csrfToken|default('') }}">
+                        <input type="hidden" name="id" value="{{ pendingUser.id }}">
+                        <button class="db-card-link db-card-link-secondary" type="submit">Rejeitar</button>
+                      </form>
+                    </div>
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+      {% endset %}
+      <div id="pending-list">
+        {% include 'components/deskhelper-table-shell.twig' with { content: tableContent, tableClass: 'db-table db-admin-list-table dh-pending-users-table' } %}
+      </div>
+      {% if pagination.total_pages|default(1) > 1 %}
+        <div class="dh-toolbar-inline dh-pagination-bar">
+          <div class="db-contact-actions">
+            {% if pagination.has_prev %}
+              <a class="db-card-link db-card-link-secondary" href="{{ app_url('admin/users/pending?' ~ (pendingUsersListQuery|merge({ page: pagination.prev_page }))|url_encode) }}">Anterior</a>
+            {% else %}
+              <span class="db-card-link db-card-link-secondary is-disabled" aria-disabled="true">Anterior</span>
+            {% endif %}
+            {% if pagination.has_next %}
+              <a class="db-card-link db-card-link-secondary" href="{{ app_url('admin/users/pending?' ~ (pendingUsersListQuery|merge({ page: pagination.next_page }))|url_encode) }}">Próxima</a>
+            {% else %}
+              <span class="db-card-link db-card-link-secondary is-disabled" aria-disabled="true">Próxima</span>
+            {% endif %}
+          </div>
+          <div class="dh-result-summary">Página {{ pagination.page }} de {{ pagination.total_pages }}</div>
+        </div>
+      {% endif %}
+    {% endif %}
+  {% endif %}
+{% endblock %}

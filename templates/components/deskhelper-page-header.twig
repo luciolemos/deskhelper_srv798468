@@ -1,0 +1,10 @@
+<header class="dh-page-header">
+  <span class="db-section-badge">{{ badge|default('Deskhelper') }}</span>
+  <h1 class="db-card-title dh-page-title">{{ title }}</h1>
+  {% if subtitle|default('') %}
+    <p class="db-card-subtitle dh-page-subtitle">{{ subtitle }}</p>
+  {% endif %}
+  {% if meta|default('') %}
+    <p class="db-card-subtitle dh-page-meta">{{ meta }}</p>
+  {% endif %}
+</header>

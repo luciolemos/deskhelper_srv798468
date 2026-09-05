@@ -1,0 +1,8 @@
+{% set statusLabels = {
+  'open': 'Aberto',
+  'in_progress': 'Em andamento',
+  'resolved': 'Resolvido',
+  'closed': 'Fechado',
+  'cancelled': 'Cancelado'
+} %}
+<span class="dh-pill dh-pill--status" data-status="{{ status }}">{{ label|default(statusLabels[status]|default(status)) }}</span>

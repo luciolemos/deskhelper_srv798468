@@ -1,0 +1,29 @@
+{% if deskhelper_session_user.authenticated %}
+  {% set roleLabel = deskhelper_session_user.is_admin ? 'Admin' : (deskhelper_session_user.is_operator ? 'Operator' : 'Usuário') %}
+  <nav class="dh-topnav" aria-label="Navegação do deskhelper">
+    <div class="dh-topnav__inner">
+      <div class="dh-topnav__brand">
+        <span class="dh-topnav__eyebrow">Deskhelper {{ roleLabel }}</span>
+        <strong class="dh-topnav__title">{{ deskhelper_session_user.name|default('Usuário') }}</strong>
+      </div>
+      <div class="dh-topnav__links">
+        <a class="dh-topnav__link{{ deskhelper_nav.active == 'app' ? ' is-active' : '' }}" href="{{ app_url('app') }}">Painel</a>
+        <a class="dh-topnav__link{{ deskhelper_nav.active == 'tickets' ? ' is-active' : '' }}" href="{{ app_url('tickets') }}">
+          {{ deskhelper_session_user.is_operator and not deskhelper_session_user.is_admin ? 'Fila' : 'Tickets' }}
+        </a>
+        <a class="dh-topnav__link{{ deskhelper_nav.active == 'tickets_new' ? ' is-active' : '' }}" href="{{ app_url('tickets/new') }}">Novo ticket</a>
+
+        {% if deskhelper_session_user.is_admin %}
+          <a class="dh-topnav__link{{ deskhelper_nav.active == 'admin_pending' ? ' is-active' : '' }}" href="{{ app_url('admin/users/pending') }}">Pendentes</a>
+          <a class="dh-topnav__link{{ deskhelper_nav.active == 'admin_users' ? ' is-active' : '' }}" href="{{ app_url('admin/users') }}">Usuários</a>
+          <a class="dh-topnav__link{{ deskhelper_nav.active == 'admin_categories' ? ' is-active' : '' }}" href="{{ app_url('admin/categories') }}">Categorias</a>
+        {% endif %}
+
+        <form method="post" action="{{ app_url('logout') }}" hx-boost="false" class="dh-topnav__form">
+          <input type="hidden" name="csrf_token" value="{{ csrfToken|default('') }}">
+          <button class="dh-topnav__logout" type="submit">Sair</button>
+        </form>
+      </div>
+    </div>
+  </nav>
+{% endif %}

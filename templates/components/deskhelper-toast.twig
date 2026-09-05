@@ -1,0 +1,15 @@
+<div
+  class="dh-toast dh-toast--{{ type|default('success') }}"
+  role="{{ type|default('success') == 'error' ? 'alert' : 'status' }}"
+  aria-live="polite"
+  data-dh-toast
+  {% if autoHide|default(true) %}data-auto-hide="true"{% endif %}
+>
+  <div class="dh-toast__content">
+    <strong class="dh-toast__title">{{ title|default('Deskhelper') }}</strong>
+    <p class="dh-toast__message">{{ message }}</p>
+  </div>
+  <button class="dh-toast__close" type="button" aria-label="Fechar notificação" data-dh-toast-close>
+    <i class="bi bi-x-lg" aria-hidden="true"></i>
+  </button>
+</div>

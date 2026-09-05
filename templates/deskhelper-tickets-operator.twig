@@ -1,0 +1,242 @@
+{% extends 'layouts/deskhelper-dashboard.twig' %}
+
+{% block title %}Tickets Operator | Deskhelper{% endblock %}
+
+{% block head %}
+  <style>
+    .dh-op-links { display:grid; gap:12px; margin:20px 0; grid-template-columns:repeat(4, minmax(0, 1fr)); }
+    .dh-op-link { display:flex; align-items:center; justify-content:space-between; gap:10px; padding:14px 16px; border-radius:16px; text-decoration:none; color:inherit; background:rgba(243,248,245,.92); border:1px solid rgba(0,0,0,.06); }
+    .dh-op-count { min-width:42px; text-align:center; border-radius:999px; padding:6px 10px; font-weight:700; background:rgba(38,116,73,.14); }
+    .dh-tickets-filter-grid { grid-template-columns: minmax(0, 1.7fr) minmax(140px, 0.65fr) minmax(140px, 0.65fr) minmax(170px, 0.85fr) minmax(150px, 0.75fr); }
+    @media (max-width:900px) { .dh-op-links { grid-template-columns:1fr 1fr; } }
+    @media (max-width:980px) {
+      .dh-tickets-filter-grid { grid-template-columns:repeat(4, minmax(0, 1fr)); }
+      .dh-tickets-filter-grid .dh-search-panel__search { grid-column:1 / -1; }
+    }
+    @media (max-width:640px) {
+      .dh-op-links { grid-template-columns:1fr; }
+      .dh-tickets-filter-grid { grid-template-columns:minmax(0, 1fr); }
+    }
+  </style>
+{% endblock %}
+
+{% block deskhelper_shell_title %}Fila operacional de tickets{% endblock %}
+{% block deskhelper_shell_subtitle %}{{ pageSubtitle }}{% endblock %}
+
+{% block deskhelper_main %}
+  {% set statusLabels = {
+    'open': 'Aberto',
+    'in_progress': 'Em andamento',
+    'resolved': 'Resolvido',
+    'closed': 'Fechado',
+    'cancelled': 'Cancelado'
+  } %}
+  {% set priorityLabels = {
+    'low': 'Baixa',
+    'medium': 'Média',
+    'high': 'Alta'
+  } %}
+  {% set rankShort = {
+    'General de Exército': 'Gen Ex',
+    'General de Divisão': 'Gen Div',
+    'General de Brigada': 'Gen Bda',
+    'Coronel': 'Cel',
+    'Tenente-Coronel': 'Ten Cel',
+    'Major': 'Maj',
+    'Capitão': 'Cap',
+    '1º Tenente': '1º Ten',
+    '2º Tenente': '2º Ten',
+    'Aspirante a Oficial': 'Asp Of',
+    'Subtenente': 'ST',
+    '1º Sargento': '1º Sgt',
+    '2º Sargento': '2º Sgt',
+    '3º Sargento': '3º Sgt',
+    'Cabo': 'Cb',
+    'Soldado': 'Sd'
+  } %}
+  {% set sortIcons = {
+    'asc': 'bi-caret-up-fill',
+    'desc': 'bi-caret-down-fill'
+  } %}
+
+  {% if ticketsView == 'indicators' %}
+    <div id="tickets-summary" class="dh-kpi-grid">
+      <a class="dh-kpi-link" href="{{ app_url('tickets?view=list&assigned=mine') }}">
+        {% include 'components/deskhelper-kpi-card.twig' with { label: 'Atribuídos a mim', value: queueSummary.assigned_to_me|default(0), subtitle: 'Tickets atualmente sob sua responsabilidade' } %}
+      </a>
+      <a class="dh-kpi-link" href="{{ app_url('tickets?view=list&status=in_progress') }}">
+        {% include 'components/deskhelper-kpi-card.twig' with { label: 'Em andamento', value: queueSummary.in_progress|default(0), subtitle: 'Ocorrências em atendimento no seu escopo' } %}
+      </a>
+      <a class="dh-kpi-link" href="{{ app_url('tickets?view=list&status=open') }}">
+        {% include 'components/deskhelper-kpi-card.twig' with { label: 'Abertos', value: queueSummary.open|default(0), subtitle: 'Tickets próprios ou atribuídos a você sem andamento' } %}
+      </a>
+      <a class="dh-kpi-link" href="{{ app_url('tickets?view=list&priority=high') }}">
+        {% include 'components/deskhelper-kpi-card.twig' with { label: 'Prioridade alta', value: queueSummary.high|default(0), subtitle: 'Itens críticos dentro da sua visibilidade operacional' } %}
+      </a>
+    </div>
+
+    <div class="dh-op-links">
+      <a class="dh-op-link" href="{{ app_url('tickets?view=list&status=open') }}"><span>Abertos no meu escopo</span><span class="dh-op-count">{{ queueSummary.open|default(0) }}</span></a>
+      <a class="dh-op-link" href="{{ app_url('tickets?view=list&status=in_progress') }}"><span>Continuar atendimentos</span><span class="dh-op-count">{{ queueSummary.in_progress|default(0) }}</span></a>
+      <a class="dh-op-link" href="{{ app_url('tickets?view=list&assigned=mine') }}"><span>Atribuídos a mim</span><span class="dh-op-count">{{ queueSummary.assigned_to_me|default(0) }}</span></a>
+      <a class="dh-op-link" href="{{ app_url('tickets?view=list&priority=high') }}"><span>Prioridade alta</span><span class="dh-op-count">{{ queueSummary.high|default(0) }}</span></a>
+    </div>
+
+    <div class="dh-toolbar-inline">
+      <div class="dh-result-summary">{{ tickets|length }} ticket(s) exibido(s)</div>
+    </div>
+  {% else %}
+    <form id="tickets-filters" class="db-contact-form db-admin-filters dh-search-panel" method="get" action="{{ app_url('tickets') }}">
+      <input type="hidden" name="view" value="list">
+      <div class="dh-search-panel__grid dh-tickets-filter-grid">
+        <label class="dh-search-panel__search">
+          <span class="dh-search-panel__label">Busca</span>
+          <div class="dh-search-panel__input-wrap">
+            <i class="bi bi-search" aria-hidden="true"></i>
+            <input type="text" name="q" value="{{ filters.q|default('') }}" placeholder="Buscar por título, descrição ou ID do ticket">
+          </div>
+        </label>
+        <label class="dh-search-panel__field">
+          <span class="dh-search-panel__label">Status</span>
+          <select name="status">
+            <option value="">Todos</option>
+            {% for status in ['open', 'in_progress', 'resolved', 'closed', 'cancelled'] %}
+              <option value="{{ status }}" {{ filters.status|default('') == status ? 'selected' : '' }}>{{ statusLabels[status]|default(status) }}</option>
+            {% endfor %}
+          </select>
+        </label>
+        <label class="dh-search-panel__field">
+          <span class="dh-search-panel__label">Prioridade</span>
+          <select name="priority">
+            <option value="">Todas</option>
+            {% for priority in ['low', 'medium', 'high'] %}
+              <option value="{{ priority }}" {{ filters.priority|default('') == priority ? 'selected' : '' }}>{{ priorityLabels[priority]|default(priority) }}</option>
+            {% endfor %}
+          </select>
+        </label>
+        <label class="dh-search-panel__field">
+          <span class="dh-search-panel__label">Categoria</span>
+          <select name="category_id">
+            <option value="0">Todas</option>
+            {% for category in categories %}
+              <option value="{{ category.id }}" {{ filters.category_id|default(0) == category.id ? 'selected' : '' }}>{{ category.label }}</option>
+            {% endfor %}
+          </select>
+        </label>
+        <label class="dh-search-panel__field">
+          <span class="dh-search-panel__label">Setor</span>
+          <select name="request_sector">
+            <option value="">Todos</option>
+            {% for requestSectorOption in requestSectorOptions|default([]) %}
+              <option value="{{ requestSectorOption }}" {{ filters.request_sector|default('') == requestSectorOption ? 'selected' : '' }}>{{ requestSectorOption }}</option>
+            {% endfor %}
+          </select>
+        </label>
+      </div>
+      <div class="db-contact-actions dh-search-panel__actions">
+        <button class="db-card-link" type="submit">Filtrar</button>
+        <a class="db-card-link db-card-link-secondary" href="{{ app_url('tickets?view=list') }}">Limpar</a>
+      </div>
+    </form>
+
+    <div class="dh-list-controls">
+      <div class="dh-list-controls__group db-contact-actions">
+        {% include 'components/deskhelper-overview-link.twig' %}
+        <a class="db-card-link db-card-link-secondary" href="{{ app_url('tickets?view=indicators') }}">Ver indicadores</a>
+        <form method="get" action="{{ app_url('tickets') }}" style="display:inline;">
+          <input type="hidden" name="view" value="list">
+          <input type="hidden" name="q" value="{{ filters.q|default('') }}">
+          <input type="hidden" name="status" value="{{ filters.status|default('') }}">
+          <input type="hidden" name="priority" value="{{ filters.priority|default('') }}">
+          <input type="hidden" name="category_id" value="{{ filters.category_id|default(0) }}">
+          <input type="hidden" name="request_sector" value="{{ filters.request_sector|default('') }}">
+          <input type="hidden" name="assigned" value="{{ filters.assigned|default('') }}">
+          <input type="hidden" name="scope" value="{{ filters.scope|default('') }}">
+          <input type="hidden" name="sort" value="{{ sort|default('id') }}">
+          <input type="hidden" name="dir" value="{{ direction|default('desc') }}">
+          <label class="dh-inline-select">
+            <span>Exibir</span>
+            <select name="per_page" onchange="this.form.submit()">
+              {% for option in ['5', '10', '15', '20', '25', '50', '100', 'all'] %}
+                <option value="{{ option }}" {{ pagination.per_page|default('10') == option ? 'selected' : '' }}>
+                  {{ option == 'all' ? 'Todos' : option }}
+                </option>
+              {% endfor %}
+            </select>
+          </label>
+        </form>
+      </div>
+      <div class="dh-list-controls__summary">{{ pagination.from|default(0) }}-{{ pagination.to|default(tickets|length) }} de {{ pagination.total_items|default(tickets|length) }} ticket(s)</div>
+    </div>
+
+    {% if tickets is empty %}
+      <p class="db-card-subtitle">Nenhum ticket encontrado.</p>
+    {% else %}
+      {% set tableContent %}
+            <thead>
+              <tr>
+                <th><a href="{{ app_url('tickets?' ~ (ticketsListQuery|merge({sort: 'id', dir: sort == 'id' and direction == 'asc' ? 'desc' : 'asc', page: 1})|url_encode)) }}">ID {% if sort == 'id' %}<i class="bi {{ sortIcons[direction] }}"></i>{% endif %}</a></th>
+                <th><a href="{{ app_url('tickets?' ~ (ticketsListQuery|merge({sort: 'title', dir: sort == 'title' and direction == 'asc' ? 'desc' : 'asc', page: 1})|url_encode)) }}">Título {% if sort == 'title' %}<i class="bi {{ sortIcons[direction] }}"></i>{% endif %}</a></th>
+                <th><a href="{{ app_url('tickets?' ~ (ticketsListQuery|merge({sort: 'category', dir: sort == 'category' and direction == 'asc' ? 'desc' : 'asc', page: 1})|url_encode)) }}">Categoria {% if sort == 'category' %}<i class="bi {{ sortIcons[direction] }}"></i>{% endif %}</a></th>
+                <th><a href="{{ app_url('tickets?' ~ (ticketsListQuery|merge({sort: 'sector', dir: sort == 'sector' and direction == 'asc' ? 'desc' : 'asc', page: 1})|url_encode)) }}">Setor {% if sort == 'sector' %}<i class="bi {{ sortIcons[direction] }}"></i>{% endif %}</a></th>
+                <th><a href="{{ app_url('tickets?' ~ (ticketsListQuery|merge({sort: 'status', dir: sort == 'status' and direction == 'asc' ? 'desc' : 'asc', page: 1})|url_encode)) }}">Status {% if sort == 'status' %}<i class="bi {{ sortIcons[direction] }}"></i>{% endif %}</a></th>
+                <th><a href="{{ app_url('tickets?' ~ (ticketsListQuery|merge({sort: 'priority', dir: sort == 'priority' and direction == 'asc' ? 'desc' : 'asc', page: 1})|url_encode)) }}">Prioridade {% if sort == 'priority' %}<i class="bi {{ sortIcons[direction] }}"></i>{% endif %}</a></th>
+                <th><a href="{{ app_url('tickets?' ~ (ticketsListQuery|merge({sort: 'created_by', dir: sort == 'created_by' and direction == 'asc' ? 'desc' : 'asc', page: 1})|url_encode)) }}">Criado por {% if sort == 'created_by' %}<i class="bi {{ sortIcons[direction] }}"></i>{% endif %}</a></th>
+                <th><a href="{{ app_url('tickets?' ~ (ticketsListQuery|merge({sort: 'assigned_to', dir: sort == 'assigned_to' and direction == 'asc' ? 'desc' : 'asc', page: 1})|url_encode)) }}">Atribuído {% if sort == 'assigned_to' %}<i class="bi {{ sortIcons[direction] }}"></i>{% endif %}</a></th>
+                <th><a href="{{ app_url('tickets?' ~ (ticketsListQuery|merge({sort: 'updated_at', dir: sort == 'updated_at' and direction == 'asc' ? 'desc' : 'asc', page: 1})|url_encode)) }}">Atualizado {% if sort == 'updated_at' %}<i class="bi {{ sortIcons[direction] }}"></i>{% endif %}</a></th>
+                <th><a href="{{ app_url('tickets?' ~ (ticketsListQuery|merge({sort: 'resolved_at', dir: sort == 'resolved_at' and direction == 'asc' ? 'desc' : 'asc', page: 1})|url_encode)) }}">Resolvido em {% if sort == 'resolved_at' %}<i class="bi {{ sortIcons[direction] }}"></i>{% endif %}</a></th>
+                <th>Ação</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for ticket in tickets %}
+                <tr>
+                  <td class="dh-ticket-table__id"><a href="{{ app_url('tickets/' ~ ticket.id) }}" hx-boost="false">#{{ ticket.id }}</a></td>
+                  <td class="dh-ticket-table__title-cell">
+                    <a class="dh-ticket-table__title" href="{{ app_url('tickets/' ~ ticket.id) }}" hx-boost="false">{{ ticket.title }}</a>
+                  </td>
+                  <td>{{ ticket.category_label }}</td>
+                  <td>{{ ticket.request_sector|default('-') }}</td>
+                  <td>{% include 'components/deskhelper-status-pill.twig' with { status: ticket.status } %}</td>
+                  <td>{% include 'components/deskhelper-priority-pill.twig' with { priority: ticket.priority } %}</td>
+                  <td>
+                    {{ [rankShort[ticket.created_by_rank|default('')]|default(ticket.created_by_rank|default('')), ticket.created_by_name]|join(' ')|trim }}
+                    {% if ticket.created_by_sector|default('') %}
+                      / {{ ticket.created_by_sector }}
+                    {% endif %}
+                  </td>
+                  <td>{{ ticket.assigned_to_name ? [rankShort[ticket.assigned_to_rank|default('')]|default(ticket.assigned_to_rank|default('')), ticket.assigned_to_name]|join(' ')|trim : 'Não atribuído' }}</td>
+                  <td class="dh-ticket-table__time-cell">{{ ticket.updated_at }}</td>
+                  <td class="dh-ticket-table__time-cell">{{ ticket.resolved_at|default('-') ?: '-' }}</td>
+                  <td class="dh-ticket-table__actions-cell">
+                    <a class="db-card-link db-card-link-secondary" href="{{ app_url('tickets/' ~ ticket.id) }}" hx-boost="false" aria-label="Visualizar ticket #{{ ticket.id }}" title="Visualizar ticket #{{ ticket.id }}">
+                      <i class="bi bi-eye" aria-hidden="true"></i>
+                    </a>
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+      {% endset %}
+      <div id="tickets-list">
+        {% include 'components/deskhelper-table-shell.twig' with { content: tableContent, tableClass: 'db-table db-admin-list-table dh-ticket-table dh-ticket-table--classic' } %}
+      </div>
+      {% if pagination.total_pages|default(1) > 1 %}
+        <div class="dh-toolbar-inline dh-pagination-bar">
+          <div class="db-contact-actions">
+            {% if pagination.has_prev %}
+              <a class="db-card-link db-card-link-secondary" href="{{ app_url('tickets?' ~ (ticketsListQuery|merge({page: pagination.prev_page})|url_encode)) }}">Anterior</a>
+            {% else %}
+              <span class="db-card-link db-card-link-secondary is-disabled" aria-disabled="true">Anterior</span>
+            {% endif %}
+            {% if pagination.has_next %}
+              <a class="db-card-link db-card-link-secondary" href="{{ app_url('tickets?' ~ (ticketsListQuery|merge({page: pagination.next_page})|url_encode)) }}">Próxima</a>
+            {% else %}
+              <span class="db-card-link db-card-link-secondary is-disabled" aria-disabled="true">Próxima</span>
+            {% endif %}
+          </div>
+          <div class="dh-result-summary">Página {{ pagination.page }} de {{ pagination.total_pages }}</div>
+        </div>
+      {% endif %}
+    {% endif %}
+  {% endif %}
+{% endblock %}

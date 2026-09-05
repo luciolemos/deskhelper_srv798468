@@ -1,0 +1,217 @@
+{% extends 'layouts/deskhelper-dashboard.twig' %}
+
+{% block title %}Categorias | Deskhelper{% endblock %}
+
+{% block head %}
+  <style>
+    .dh-categories-table {
+      table-layout: fixed;
+    }
+    .dh-categories-table th:nth-child(1),
+    .dh-categories-table td:nth-child(1) {
+      width: 18%;
+    }
+    .dh-categories-table th:nth-child(2),
+    .dh-categories-table td:nth-child(2) {
+      width: 34%;
+    }
+    .dh-categories-table th:nth-child(3),
+    .dh-categories-table td:nth-child(3) {
+      width: 14%;
+    }
+    .dh-categories-table th:nth-child(4),
+    .dh-categories-table td:nth-child(4) {
+      width: 14%;
+    }
+    .dh-categories-table th:nth-child(5),
+    .dh-categories-table td:nth-child(5) {
+      width: 20%;
+    }
+    .dh-categories-table td:nth-child(1) {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .dh-categories-inline-form {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: nowrap;
+      justify-content: center;
+      width: 100%;
+    }
+    .dh-categories-input,
+    .dh-categories-select {
+      min-height: 42px;
+      border-radius: 12px;
+      border: 1px solid color-mix(in srgb, var(--accent) 14%, var(--border));
+      background: rgba(255, 255, 255, 0.92);
+      color: var(--text);
+      font-size: 0.9rem;
+      transition: border-color 140ms ease, box-shadow 140ms ease, background-color 140ms ease;
+    }
+    .dh-categories-input {
+      width: 100%;
+      padding: 0 0.85rem;
+    }
+    .dh-categories-input--order {
+      width: 86px;
+      text-align: center;
+      padding: 0 0.4rem;
+    }
+    .dh-categories-select {
+      width: 88px;
+      min-width: 88px;
+      padding: 0 0.7rem;
+    }
+    .dh-categories-input:focus,
+    .dh-categories-select:focus {
+      outline: none;
+      border-color: color-mix(in srgb, var(--accent) 44%, var(--border));
+      box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 12%, transparent);
+      background: #ffffff;
+    }
+    .dh-categories-submit {
+      min-height: 42px;
+      padding-top: 0;
+      padding-bottom: 0;
+      white-space: nowrap;
+    }
+  </style>
+{% endblock %}
+
+{% block deskhelper_shell_title %}Categorias{% endblock %}
+{% block deskhelper_shell_subtitle %}Mantenha as categorias fixas disponíveis para abertura de tickets.{% endblock %}
+
+{% block deskhelper_main %}
+  {% set perPageOptions = ['5', '10', '15', '20', '25', '50', '100', 'all'] %}
+  {% set currentDirection = direction|default('asc') %}
+  {% set currentSort = sort|default('sort_order') %}
+  {% macro sort_link(baseQuery, column, currentSort, currentDirection) %}
+    {% set nextDirection = currentSort == column and currentDirection == 'asc' ? 'desc' : 'asc' %}
+    {{ (baseQuery|merge({ sort: column, dir: nextDirection, page: 1 }))|url_encode }}
+  {% endmacro %}
+
+  {% if categoriesView == 'indicators' %}
+    <div class="dh-kpi-grid">
+      <a class="dh-kpi-link" href="{{ app_url('admin/categories?view=list') }}">
+        {% include 'components/deskhelper-kpi-card.twig' with { label: 'Categorias totais', value: categoriesSummary.total|default(0), subtitle: 'Estrutura disponível para classificação de tickets' } %}
+      </a>
+      <a class="dh-kpi-link" href="{{ app_url('admin/categories?view=list&active=1') }}">
+        {% include 'components/deskhelper-kpi-card.twig' with { label: 'Ativas', value: categoriesSummary.active|default(0), subtitle: 'Categorias habilitadas para abertura' } %}
+      </a>
+      <a class="dh-kpi-link" href="{{ app_url('admin/categories?view=list&active=0') }}">
+        {% include 'components/deskhelper-kpi-card.twig' with { label: 'Inativas', value: categoriesSummary.inactive|default(0), subtitle: 'Categorias temporariamente desabilitadas' } %}
+      </a>
+    </div>
+  {% else %}
+    <form class="db-contact-form db-admin-filters dh-search-panel" method="get" action="{{ app_url('admin/categories') }}">
+      <input type="hidden" name="view" value="list">
+      <div class="dh-search-panel__grid" style="grid-template-columns:minmax(0, 1.8fr) minmax(160px, 0.8fr);">
+        <label class="dh-search-panel__search">
+          <span class="dh-search-panel__label">Busca</span>
+          <div class="dh-search-panel__input-wrap">
+            <i class="bi bi-search" aria-hidden="true"></i>
+            <input type="text" name="q" value="{{ filters.q|default('') }}" placeholder="Buscar por slug ou rótulo da categoria">
+          </div>
+        </label>
+        <label class="dh-search-panel__field">
+          <span class="dh-search-panel__label">Ativa</span>
+          <select name="active">
+            <option value="">Todas</option>
+            <option value="1" {{ filters.active|default('') == '1' ? 'selected' : '' }}>Sim</option>
+            <option value="0" {{ filters.active|default('') == '0' ? 'selected' : '' }}>Não</option>
+          </select>
+        </label>
+      </div>
+      <div class="db-contact-actions dh-search-panel__actions">
+        <button class="db-card-link" type="submit">Filtrar</button>
+        <a class="db-card-link db-card-link-secondary" href="{{ app_url('admin/categories?view=list') }}">Limpar</a>
+      </div>
+    </form>
+
+    <div class="dh-list-controls">
+      <div class="dh-list-controls__group db-contact-actions">
+        {% include 'components/deskhelper-overview-link.twig' %}
+        <a class="db-card-link db-card-link-secondary" href="{{ app_url('admin/categories?view=indicators') }}">Ver indicadores</a>
+        <form method="get" action="{{ app_url('admin/categories') }}" style="display:inline;">
+          <input type="hidden" name="view" value="list">
+          <input type="hidden" name="q" value="{{ filters.q|default('') }}">
+          <input type="hidden" name="active" value="{{ filters.active|default('') }}">
+          <input type="hidden" name="sort" value="{{ sort|default('sort_order') }}">
+          <input type="hidden" name="dir" value="{{ direction|default('asc') }}">
+          <label class="dh-inline-select">
+            <span>Exibir</span>
+            <select name="per_page" onchange="this.form.submit()">
+              {% for option in perPageOptions %}
+                <option value="{{ option }}" {{ pagination.per_page|default('10') == option ? 'selected' : '' }}>
+                  {{ option == 'all' ? 'Todos' : option }}
+                </option>
+              {% endfor %}
+            </select>
+          </label>
+        </form>
+      </div>
+      <div class="dh-list-controls__summary">{{ pagination.from|default(0) }}-{{ pagination.to|default(0) }} de {{ pagination.total_items|default(categories|length) }} categoria(s)</div>
+    </div>
+
+    {% set tableContent %}
+          <thead>
+            <tr>
+              <th><a href="{{ app_url('admin/categories?' ~ _self.sort_link(categoriesListQuery|default({view: 'list'}), 'slug', currentSort, currentDirection)) }}">Slug {% if currentSort == 'slug' %}<i class="bi {{ currentDirection == 'asc' ? 'bi-caret-up-fill' : 'bi-caret-down-fill' }}"></i>{% endif %}</a></th>
+              <th><a href="{{ app_url('admin/categories?' ~ _self.sort_link(categoriesListQuery|default({view: 'list'}), 'label', currentSort, currentDirection)) }}">Rótulo {% if currentSort == 'label' %}<i class="bi {{ currentDirection == 'asc' ? 'bi-caret-up-fill' : 'bi-caret-down-fill' }}"></i>{% endif %}</a></th>
+              <th><a href="{{ app_url('admin/categories?' ~ _self.sort_link(categoriesListQuery|default({view: 'list'}), 'sort_order', currentSort, currentDirection)) }}">Ordem {% if currentSort == 'sort_order' %}<i class="bi {{ currentDirection == 'asc' ? 'bi-caret-up-fill' : 'bi-caret-down-fill' }}"></i>{% endif %}</a></th>
+              <th><a href="{{ app_url('admin/categories?' ~ _self.sort_link(categoriesListQuery|default({view: 'list'}), 'active', currentSort, currentDirection)) }}">Ativa {% if currentSort == 'active' %}<i class="bi {{ currentDirection == 'asc' ? 'bi-caret-up-fill' : 'bi-caret-down-fill' }}"></i>{% endif %}</a></th>
+              <th>Ação</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for category in categories %}
+              {% set categoryFormId = 'category-update-' ~ category.id %}
+              <tr>
+                <td>{{ category.slug }}</td>
+                <td>
+                  <input form="{{ categoryFormId }}" class="dh-categories-input" type="text" name="label" value="{{ category.label }}" maxlength="80" required>
+                </td>
+                <td>
+                    <input form="{{ categoryFormId }}" class="dh-categories-input dh-categories-input--order" type="number" name="sort_order" value="{{ category.sort_order }}" min="1">
+                </td>
+                <td>
+                    <select form="{{ categoryFormId }}" class="dh-categories-select" name="active">
+                      <option value="1" {{ category.active ? 'selected' : '' }}>Sim</option>
+                      <option value="0" {{ not category.active ? 'selected' : '' }}>Não</option>
+                    </select>
+                </td>
+                <td>
+                    <form id="{{ categoryFormId }}" method="post" action="{{ app_url('admin/categories/update') }}" hx-boost="false" class="db-contact-form dh-categories-inline-form">
+                      <input type="hidden" name="csrf_token" value="{{ csrfToken|default('') }}">
+                      <input type="hidden" name="id" value="{{ category.id }}">
+                      <button class="db-card-link dh-categories-submit" type="submit">Salvar</button>
+                    </form>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+    {% endset %}
+    <div id="categories-list">
+      {% include 'components/deskhelper-table-shell.twig' with { content: tableContent, tableClass: 'db-table db-admin-list-table dh-categories-table' } %}
+    </div>
+    {% if pagination.total_pages|default(1) > 1 %}
+      <div class="dh-toolbar-inline dh-pagination-bar">
+        <div class="db-contact-actions">
+          {% if pagination.has_prev %}
+            <a class="db-card-link db-card-link-secondary" href="{{ app_url('admin/categories?' ~ (categoriesListQuery|merge({ page: pagination.prev_page }))|url_encode) }}">Anterior</a>
+          {% else %}
+            <span class="db-card-link db-card-link-secondary is-disabled" aria-disabled="true">Anterior</span>
+          {% endif %}
+          {% if pagination.has_next %}
+            <a class="db-card-link db-card-link-secondary" href="{{ app_url('admin/categories?' ~ (categoriesListQuery|merge({ page: pagination.next_page }))|url_encode) }}">Próxima</a>
+          {% else %}
+            <span class="db-card-link db-card-link-secondary is-disabled" aria-disabled="true">Próxima</span>
+          {% endif %}
+        </div>
+        <div class="dh-result-summary">Página {{ pagination.page }} de {{ pagination.total_pages }}</div>
+      </div>
+    {% endif %}
+  {% endif %}
+{% endblock %}

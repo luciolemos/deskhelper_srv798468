@@ -1,0 +1,61 @@
+{% set normalizedLabel = label|default('')|lower %}
+{% set icon = 'bi-grid-1x2' %}
+
+{% if 'pendente' in normalizedLabel %}
+  {% set icon = 'bi-hourglass-split' %}
+{% elseif 'ativo' in normalizedLabel %}
+  {% set icon = 'bi-person-check' %}
+{% elseif 'desativado' in normalizedLabel %}
+  {% set icon = 'bi-person-dash' %}
+{% elseif 'total' in normalizedLabel %}
+  {% set icon = 'bi-collection' %}
+{% elseif 'aberto' in normalizedLabel %}
+  {% set icon = 'bi-inbox' %}
+{% elseif 'andamento' in normalizedLabel or 'continuar' in normalizedLabel %}
+  {% set icon = 'bi-arrow-repeat' %}
+{% elseif 'aguardando' in normalizedLabel %}
+  {% set icon = 'bi-hourglass' %}
+{% elseif 'resolvido' in normalizedLabel %}
+  {% set icon = 'bi-patch-check' %}
+{% elseif 'prioridade' in normalizedLabel %}
+  {% set icon = 'bi-exclamation-diamond' %}
+{% elseif 'não atribu' in normalizedLabel or 'nao atribu' in normalizedLabel %}
+  {% set icon = 'bi-person-x' %}
+{% elseif 'atribuído' in normalizedLabel or 'atribuido' in normalizedLabel %}
+  {% set icon = 'bi-person-workspace' %}
+{% elseif 'ticket' in normalizedLabel %}
+  {% set icon = 'bi-ticket-perforated' %}
+{% elseif 'categoria' in normalizedLabel %}
+  {% set icon = 'bi-tags' %}
+{% elseif 'usuário' in normalizedLabel or 'usuario' in normalizedLabel %}
+  {% set icon = 'bi-people' %}
+{% elseif 'admin' in normalizedLabel %}
+  {% set icon = 'bi-shield-lock' %}
+{% elseif 'operador' in normalizedLabel %}
+  {% set icon = 'bi-headset' %}
+{% elseif 'cadastro' in normalizedLabel %}
+  {% set icon = 'bi-person-plus' %}
+{% elseif 'fila' in normalizedLabel %}
+  {% set icon = 'bi-kanban' %}
+{% elseif 'respons' in normalizedLabel %}
+  {% set icon = 'bi-diagram-3' %}
+{% elseif 'capturar' in normalizedLabel %}
+  {% set icon = 'bi-box-arrow-in-down-left' %}
+{% elseif 'gerenciar' in normalizedLabel or 'manter' in normalizedLabel %}
+  {% set icon = 'bi-sliders' %}
+{% endif %}
+
+<article class="db-card db-card-compact dh-kpi-card">
+  <div class="db-card-body dh-kpi-card__body">
+    <div class="dh-kpi-card__heading">
+      <div class="dh-kpi-card__media" aria-hidden="true">
+        <i class="bi {{ icon }}"></i>
+      </div>
+      <strong class="dh-kpi-card__title">{{ label }}</strong>
+    </div>
+    <strong class="db-card-title dh-kpi-card__value{{ value_class|default('') ? ' ' ~ value_class : '' }}">{{ value }}</strong>
+    {% if subtitle|default('') %}
+      <p class="db-card-subtitle dh-kpi-card__subtitle">{{ subtitle }}</p>
+    {% endif %}
+  </div>
+</article>

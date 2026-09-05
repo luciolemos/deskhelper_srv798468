@@ -1,0 +1,6 @@
+{% set priorityLabels = {
+  'low': 'Baixa',
+  'medium': 'Média',
+  'high': 'Alta'
+} %}
+<span class="dh-pill dh-pill--priority" data-priority="{{ priority }}">{{ label|default(priorityLabels[priority]|default(priority)) }}</span>

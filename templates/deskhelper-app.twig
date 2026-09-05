@@ -1,0 +1,70 @@
+{% extends 'layouts/deskhelper-dashboard.twig' %}
+
+{% block title %}Painel | Deskhelper{% endblock %}
+
+{% block head %}
+  <style>
+    .dh-user-links {
+      display: grid;
+      gap: 12px;
+    }
+    .dh-user-link {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 14px 16px;
+      border-radius: 16px;
+      text-decoration: none;
+      color: inherit;
+      background: rgba(244,248,243,.92);
+      border: 1px solid rgba(0,0,0,.06);
+    }
+    .dh-user-link-count {
+      min-width: 42px;
+      text-align: center;
+      border-radius: 999px;
+      padding: 6px 10px;
+      font-weight: 700;
+      background: rgba(42,126,88,.14);
+    }
+  </style>
+{% endblock %}
+
+{% block deskhelper_shell_title %}Painel{% endblock %}
+{% block deskhelper_shell_subtitle %}Acompanhe suas solicitações e abra novos tickets quando necessário.{% endblock %}
+
+{% block deskhelper_main %}
+  <div class="dh-kpi-grid">
+    <a href="{{ app_url('tickets?view=list') }}" class="dh-kpi-link">
+      {% include 'components/deskhelper-kpi-card.twig' with { label: 'Meus tickets', value: summary.myTickets|default(0), subtitle: 'Ocorrências registradas com sua conta' } %}
+    </a>
+    <a href="{{ app_url('tickets?view=list&status=open') }}" class="dh-kpi-link">
+      {% include 'components/deskhelper-kpi-card.twig' with { label: 'Abertos', value: summary.status.open|default(0), subtitle: 'Tickets ainda sem conclusão' } %}
+    </a>
+    <a href="{{ app_url('tickets?view=list&status=in_progress') }}" class="dh-kpi-link">
+      {% include 'components/deskhelper-kpi-card.twig' with { label: 'Em andamento', value: summary.status.in_progress|default(0), subtitle: 'Ocorrências em atendimento no momento' } %}
+    </a>
+    <a href="{{ app_url('tickets?view=list&status=resolved') }}" class="dh-kpi-link">
+      {% include 'components/deskhelper-kpi-card.twig' with { label: 'Resolvidos', value: summary.status.resolved|default(0) + summary.status.closed|default(0), subtitle: 'Tickets concluídos ou encerrados' } %}
+    </a>
+  </div>
+
+  <div class="db-card-grid" style="margin-top:20px;">
+    <article class="db-card">
+      <div class="db-card-body">
+        <h2 class="db-card-title">Atalhos</h2>
+        <div class="dh-user-links">
+          <a class="dh-user-link" href="{{ app_url('tickets/new') }}" hx-boost="false">
+            <span>Abrir novo ticket</span>
+            <span class="dh-user-link-count">+</span>
+          </a>
+          <a class="dh-user-link" href="{{ app_url('tickets') }}">
+            <span>Ver meus tickets</span>
+            <span class="dh-user-link-count">{{ summary.myTickets|default(0) }}</span>
+          </a>
+        </div>
+      </div>
+    </article>
+  </div>
+{% endblock %}

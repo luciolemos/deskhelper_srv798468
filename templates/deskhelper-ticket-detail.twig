@@ -1,0 +1,523 @@
+{% extends 'layouts/deskhelper-dashboard.twig' %}
+
+{% block title %}Ticket #{{ ticket.id }} | Deskhelper{% endblock %}
+
+{% block head %}
+  <style>
+    .dh-user-ticket-toolbar {
+      margin-top: 28px;
+    }
+    .dh-user-ticket-overview {
+      margin-top: 28px;
+    }
+    .dh-user-ticket-overview-head {
+      display: grid;
+      gap: 14px;
+    }
+    .dh-user-ticket-overview-head h2,
+    .dh-user-ticket-overview-head p {
+      margin: 0;
+    }
+    .dh-user-ticket-overview-head p {
+      color: rgba(27, 38, 24, 0.78);
+      line-height: 1.7;
+    }
+    .dh-user-ticket-overview-grid {
+      display: grid;
+      gap: 16px;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      margin-top: 20px;
+    }
+    .dh-user-ticket-overview-item {
+      display: grid;
+      gap: 6px;
+      padding: 14px 16px;
+      border-radius: 16px;
+      background: linear-gradient(180deg, rgba(247,249,244,.9), rgba(255,255,255,.98));
+      border: 1px solid rgba(0,0,0,.06);
+      min-width: 0;
+    }
+    .dh-user-ticket-overview-label {
+      font-size: .74rem;
+      font-weight: 800;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      color: rgba(27, 38, 24, 0.68);
+    }
+    .dh-user-ticket-overview-value {
+      font-size: .98rem;
+      font-weight: 700;
+      color: var(--text);
+      line-height: 1.35;
+      overflow-wrap: anywhere;
+    }
+    .dh-user-ticket-layout {
+      display: grid;
+      gap: 28px;
+      grid-template-columns: minmax(0, 1.15fr) minmax(300px, 0.85fr);
+      margin-top: 28px;
+      align-items: start;
+    }
+    .dh-user-ticket-stack {
+      display: grid;
+      gap: 28px;
+    }
+    .dh-user-ticket-summary {
+      display: grid;
+      gap: 14px;
+    }
+    .dh-user-ticket-summary h2,
+    .dh-user-ticket-summary p {
+      margin: 0;
+    }
+    .dh-user-ticket-summary p {
+      color: rgba(27, 38, 24, 0.78);
+      line-height: 1.7;
+    }
+    .dh-user-ticket-section-title {
+      margin: 0;
+      font-size: 1.02rem;
+      font-weight: 800;
+      color: var(--text);
+    }
+    .dh-user-ticket-meta {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    .dh-user-ticket-meta th,
+    .dh-user-ticket-meta td {
+      padding: 12px 0;
+      border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+      text-align: left;
+      vertical-align: top;
+    }
+    .dh-user-ticket-meta th {
+      width: 38%;
+      font-size: .76rem;
+      font-weight: 800;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      color: rgba(27, 38, 24, 0.72);
+    }
+    .dh-user-ticket-meta td {
+      font-size: .94rem;
+      color: var(--text);
+      overflow-wrap: anywhere;
+    }
+    .dh-user-ticket-timeline {
+      display: grid;
+      gap: 0;
+    }
+    .dh-user-ticket-chat {
+      display: grid;
+      gap: 14px;
+    }
+    .dh-user-ticket-chat-empty {
+      color: rgba(27, 38, 24, 0.72);
+      line-height: 1.6;
+    }
+    .dh-user-ticket-chat-item {
+      display: grid;
+      gap: 6px;
+      justify-items: start;
+    }
+    .dh-user-ticket-chat-item.is-own {
+      justify-items: end;
+    }
+    .dh-user-ticket-chat-meta {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      font-size: .82rem;
+      color: rgba(27, 38, 24, 0.68);
+      line-height: 1.4;
+    }
+    .dh-user-ticket-chat-author {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+    }
+    .dh-user-ticket-chat-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 999px;
+      overflow: hidden;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex: 0 0 40px;
+      background: linear-gradient(135deg, rgba(79, 103, 47, 0.16), rgba(165, 111, 17, 0.22));
+      color: #31461f;
+      font-size: .85rem;
+      font-weight: 800;
+    }
+    .dh-user-ticket-chat-avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+    .dh-user-ticket-chat-bubble {
+      max-width: min(100%, 560px);
+      padding: 12px 14px;
+      border-radius: 18px 18px 18px 8px;
+      background: rgba(244, 247, 240, 0.96);
+      border: 1px solid rgba(49, 70, 31, 0.08);
+      color: var(--text);
+      line-height: 1.65;
+      box-shadow: 0 10px 20px rgba(19, 31, 14, 0.04);
+      overflow-wrap: anywhere;
+    }
+    .dh-user-ticket-chat-item.is-own .dh-user-ticket-chat-bubble {
+      border-radius: 18px 18px 8px 18px;
+      background: color-mix(in srgb, var(--accent) 12%, #ffffff);
+      border-color: color-mix(in srgb, var(--accent) 18%, rgba(49, 70, 31, 0.08));
+    }
+    .dh-user-ticket-chat-item.is-staff .dh-user-ticket-chat-bubble {
+      background: rgba(250, 245, 233, 0.98);
+      border-color: rgba(165, 111, 17, 0.18);
+    }
+    .dh-user-ticket-chat-item.is-admin .dh-user-ticket-chat-bubble {
+      background: rgba(245, 239, 228, 0.98);
+      border-color: rgba(165, 111, 17, 0.24);
+    }
+    .dh-user-ticket-chat-item.is-operator .dh-user-ticket-chat-bubble {
+      background: rgba(236, 244, 233, 0.98);
+      border-color: rgba(79, 103, 47, 0.22);
+    }
+    .dh-user-ticket-chat-item.is-user .dh-user-ticket-chat-bubble {
+      background: rgba(235, 241, 247, 0.98);
+      border-color: rgba(53, 92, 140, 0.18);
+    }
+    .dh-user-ticket-event {
+      position: relative;
+      display: grid;
+      gap: 6px;
+      padding: 0 0 14px 32px;
+      margin-bottom: 14px;
+    }
+    .dh-user-ticket-event:last-child {
+      margin-bottom: 0;
+      padding-bottom: 0;
+    }
+    .dh-user-ticket-event::before {
+      content: "";
+      position: absolute;
+      left: 11px;
+      top: 10px;
+      bottom: -14px;
+      width: 2px;
+      background: linear-gradient(180deg, rgba(49, 70, 31, 0.16), rgba(49, 70, 31, 0.08));
+      border-radius: 999px;
+    }
+    .dh-user-ticket-event:last-child::before {
+      display: none;
+    }
+    .dh-user-ticket-event::after {
+      content: "";
+      position: absolute;
+      box-sizing: border-box;
+      left: 3px;
+      top: 2px;
+      width: 18px;
+      height: 18px;
+      border-radius: 999px;
+      background: #ffffff;
+      border: 3px solid color-mix(in srgb, var(--accent) 52%, #ffffff);
+      box-shadow: 0 0 0 1px rgba(49, 70, 31, 0.12);
+    }
+    .dh-user-ticket-event-title {
+      font-size: .98rem;
+      font-weight: 700;
+      color: var(--text);
+    }
+    .dh-user-ticket-event-meta {
+      color: rgba(27, 38, 24, 0.72);
+      font-size: .88rem;
+      line-height: 1.45;
+    }
+    .dh-user-ticket-event-body {
+      color: rgba(27, 38, 24, 0.82);
+      font-size: .94rem;
+      line-height: 1.65;
+      overflow-wrap: anywhere;
+    }
+    .dh-comment-form {
+      display: grid;
+      gap: 16px;
+      margin-top: 22px;
+      padding: 18px;
+      border-radius: 18px;
+      background: linear-gradient(180deg, rgba(247,249,244,.96), rgba(255,255,255,.98));
+      border: 1px solid rgba(0,0,0,.06);
+    }
+    .dh-comment-form label {
+      display: grid;
+      gap: 8px;
+    }
+    .dh-comment-form span {
+      font-size: .76rem;
+      font-weight: 800;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      color: rgba(27, 38, 24, 0.72);
+    }
+    .dh-comment-form textarea {
+      min-height: 140px;
+      border-radius: 12px;
+      border: 1px solid color-mix(in srgb, var(--accent) 14%, var(--border));
+      background: rgba(255,255,255,.94);
+      color: var(--text);
+      padding: .8rem .9rem;
+      font: inherit;
+      line-height: 1.55;
+      resize: vertical;
+      transition: border-color 140ms ease, box-shadow 140ms ease, background-color 140ms ease;
+    }
+    .dh-comment-form textarea:focus {
+      outline: none;
+      border-color: color-mix(in srgb, var(--accent) 44%, var(--border));
+      box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 12%, transparent);
+      background: #ffffff;
+    }
+    .dh-comment-help {
+      margin: 0;
+      color: rgba(27, 38, 24, 0.72);
+      font-size: .9rem;
+      line-height: 1.5;
+    }
+    @media (max-width: 980px) {
+      .dh-user-ticket-overview-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+      .dh-user-ticket-layout {
+        grid-template-columns: 1fr;
+      }
+    }
+    @media (max-width: 640px) {
+      .dh-user-ticket-overview-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+{% endblock %}
+
+{% block deskhelper_shell_title %}Ticket #{{ ticket.id }}{% endblock %}
+{% block deskhelper_shell_subtitle %}Acompanhe a solicitação e registre novas informações quando necessário.{% endblock %}
+
+{% block deskhelper_main %}
+  {% set rankShort = {
+    'General de Exército': 'Gen Ex',
+    'General de Divisão': 'Gen Div',
+    'General de Brigada': 'Gen Bda',
+    'Coronel': 'Cel',
+    'Tenente-Coronel': 'Ten Cel',
+    'Major': 'Maj',
+    'Capitão': 'Cap',
+    '1º Tenente': '1º Ten',
+    '2º Tenente': '2º Ten',
+    'Aspirante a Oficial': 'Asp Of',
+    'Subtenente': 'ST',
+    '1º Sargento': '1º Sgt',
+    '2º Sargento': '2º Sgt',
+    '3º Sargento': '3º Sgt',
+    'Cabo': 'Cb',
+    'Soldado': 'Sd'
+  } %}
+  {% set statusLabels = {
+    'open': 'Aberto',
+    'in_progress': 'Em andamento',
+    'resolved': 'Resolvido',
+    'closed': 'Fechado',
+    'cancelled': 'Cancelado'
+  } %}
+  {% set priorityLabels = {
+    'low': 'Baixa',
+    'medium': 'Média',
+    'high': 'Alta'
+  } %}
+  {% set roleLabels = {
+    'admin': 'Administrador',
+    'operator': 'Operador',
+    'user': 'Usuário'
+  } %}
+  {% set eventLabels = {
+    'ticket_created': 'Ticket criado',
+    'status_changed': 'Status alterado',
+    'assigned': 'Responsável alterado',
+    'comment_added': 'Comentário adicionado'
+  } %}
+
+
+  <div class="db-contact-actions dh-user-ticket-toolbar">
+    <a class="db-card-link db-card-link-secondary" href="{{ app_url('tickets?view=list') }}">Voltar à lista</a>
+  </div>
+
+  <article class="db-card dh-user-ticket-overview">
+    <div class="db-card-body">
+      <span class="db-card-badge">Resumo do ticket</span>
+      <div class="dh-user-ticket-overview-head">
+        <h2 class="db-card-title">{{ ticket.title }}</h2>
+        <p>{{ ticket.description }}</p>
+      </div>
+      <div class="dh-user-ticket-overview-grid">
+        <div class="dh-user-ticket-overview-item">
+          <span class="dh-user-ticket-overview-label">Status</span>
+          <span class="dh-user-ticket-overview-value">{{ statusLabels[ticket.status]|default(ticket.status) }}</span>
+        </div>
+        <div class="dh-user-ticket-overview-item">
+          <span class="dh-user-ticket-overview-label">Prioridade</span>
+          <span class="dh-user-ticket-overview-value">{{ priorityLabels[ticket.priority]|default(ticket.priority) }}</span>
+        </div>
+        <div class="dh-user-ticket-overview-item">
+          <span class="dh-user-ticket-overview-label">Categoria</span>
+          <span class="dh-user-ticket-overview-value">{{ ticket.category_label|default('-') }}</span>
+        </div>
+        <div class="dh-user-ticket-overview-item">
+          <span class="dh-user-ticket-overview-label">Responsável</span>
+          <span class="dh-user-ticket-overview-value">
+            {% if ticket.assigned_to_name|default('') %}
+              {{ [rankShort[ticket.assigned_to_rank|default('')]|default(ticket.assigned_to_rank|default('')), ticket.assigned_to_name|default('')]|join(' ')|trim }}
+            {% else %}
+              Ainda não atribuído
+            {% endif %}
+          </span>
+        </div>
+      </div>
+    </div>
+  </article>
+
+  <section class="dh-user-ticket-layout">
+    <div class="dh-user-ticket-stack">
+      <article class="db-card">
+        <div class="db-card-body">
+          <span class="db-card-badge">Comentários</span>
+          <h2 class="dh-user-ticket-section-title">CONVERSA DO TICKET</h2>
+          <article class="db-card">
+            <div class="db-card-body">
+              {% if ticket.comments is empty %}
+                <p class="dh-user-ticket-chat-empty">Ainda não há comentários neste ticket.</p>
+              {% else %}
+                <div class="dh-user-ticket-chat">
+                  {% for comment in ticket.comments %}
+                    {% set isOwnComment = (comment.user_name|default('')) == (ticket.created_by_name|default('')) %}
+                    {% set commentRoleLabel = roleLabels[comment.user_role|default('')] ?? '' %}
+                    {% set commentRoleClass = comment.user_role ? ' is-' ~ comment.user_role : '' %}
+                    {% set commentIdentity = ([rankShort[comment.user_rank|default('')]|default(comment.user_rank|default('')), comment.user_name|default('')]|join(' ')|trim) %}
+                    <div class="dh-user-ticket-chat-item{{ isOwnComment ? ' is-own' : ' is-staff' }}{{ commentRoleClass }}">
+                      <div class="dh-user-ticket-chat-meta">
+                        <span class="dh-user-ticket-chat-author">
+                          <span class="dh-user-ticket-chat-avatar" aria-hidden="true">
+                            {% if comment.avatar_path|default('') %}
+                              <img src="{{ asset_base_path }}/assets/img/avatar/{{ comment.avatar_path }}" alt="Foto de {{ comment.user_name }}" loading="lazy">
+                            {% else %}
+                              {{ comment.user_name|default('U')|slice(0, 1)|upper }}
+                            {% endif %}
+                          </span>
+                          <span>
+                            {{ commentIdentity != '' ? commentIdentity : comment.user_name }}
+                            {% if commentRoleLabel %}
+                              ({{ commentRoleLabel }})
+                            {% endif %}
+                          </span>
+                        </span>
+                        <span>· {{ comment.created_at }}</span>
+                      </div>
+                      <div class="dh-user-ticket-chat-bubble">{{ comment.body }}</div>
+                    </div>
+                  {% endfor %}
+                </div>
+              {% endif %}
+
+              {% if canComment %}
+                <form class="dh-comment-form" method="post" action="{{ app_url('tickets/' ~ ticket.id ~ '/comment') }}" hx-boost="false">
+                  <input type="hidden" name="csrf_token" value="{{ csrfToken|default('') }}">
+                  <label>
+                    <span>Novo comentário</span>
+                    <textarea name="body" rows="4" placeholder="Acrescente novas informações, responda ao atendimento ou detalhe o comportamento observado." required></textarea>
+                  </label>
+                  <p class="dh-comment-help">Use este campo para complementar o ticket com novas evidências ou responder ao atendimento recebido.</p>
+                  <div class="db-contact-actions">
+                    <button class="db-card-link" type="submit">Enviar comentário</button>
+                  </div>
+                </form>
+              {% endif %}
+            </div>
+          </article>
+        </div>
+      </article>
+    </div>
+
+    <aside class="dh-user-ticket-stack">
+      <article class="db-card">
+        <div class="db-card-body">
+          <span class="db-card-badge">Andamento</span>
+          <h2 class="dh-user-ticket-section-title">Linha do tempo do ticket</h2>
+          {% set timelineEvents = [] %}
+          {% for event in ticket.events %}
+            {% if event.event_type != 'comment_added' %}
+              {% set timelineEvents = timelineEvents|merge([{
+                'kind': 'event',
+                'title': eventLabels[event.event_type]|default(event.event_type),
+                'created_at': event.created_at,
+              }]) %}
+            {% endif %}
+          {% endfor %}
+          {% for comment in ticket.comments %}
+            {% set timelineEvents = timelineEvents|merge([{
+              'kind': 'comment',
+              'title': 'Comentário',
+              'user_name': ([rankShort[comment.user_rank|default('')]|default(comment.user_rank|default('')), comment.user_name|default('')]|join(' ')|trim),
+              'created_at': comment.created_at,
+              'body': comment.body
+            }]) %}
+          {% endfor %}
+          {% if timelineEvents is empty %}
+            <p class="db-card-subtitle">Ainda não houve movimentação registrada neste ticket.</p>
+          {% else %}
+            <div class="dh-user-ticket-timeline">
+              {% for item in timelineEvents %}
+                <div class="dh-user-ticket-event">
+                  <div class="dh-user-ticket-event-title">{{ item.title }}</div>
+                  <div class="dh-user-ticket-event-meta">{{ item.created_at }}</div>
+                </div>
+              {% endfor %}
+            </div>
+          {% endif %}
+        </div>
+      </article>
+
+      <article class="db-card">
+        <div class="db-card-body">
+          <span class="db-card-badge">Dados</span>
+          <h2 class="dh-user-ticket-section-title">Dados da solicitação</h2>
+          <table class="dh-user-ticket-meta">
+            <tbody>
+              <tr>
+                <th>Setor</th>
+                <td>{{ ticket.request_sector|default('-') }}</td>
+              </tr>
+              <tr>
+                <th>Aberto por</th>
+                <td>{{ [rankShort[ticket.created_by_rank|default('')]|default(ticket.created_by_rank|default('')), ticket.created_by_name|default('')]|join(' ')|trim ?: '-' }}</td>
+              </tr>
+              <tr>
+                <th>Criado em</th>
+                <td>{{ ticket.created_at|default('-') }}</td>
+              </tr>
+              <tr>
+                <th>Atualizado em</th>
+                <td>{{ ticket.updated_at|default('-') }}</td>
+              </tr>
+              <tr>
+                <th>Resolvido em</th>
+                <td>{{ ticket.resolved_at|default('-') ?: '-' }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </article>
+    </aside>
+  </section>
+{% endblock %}

@@ -1,0 +1,15 @@
+{
+  "name": "deskhelper-visual-tests",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Browser tests for Deskhelper",
+  "scripts": {
+    "test:visual": "node node_modules/playwright/cli.js test",
+    "test:visual:smoke": "node node_modules/playwright/cli.js test tests/visual/deskhelper-phase-smoke.spec.js",
+    "test:visual:update": "node node_modules/playwright/cli.js test --update-snapshots",
+    "test:visual:legacy": "DESKHELPER_LEGACY_TESTS=1 node node_modules/playwright/cli.js test tests/visual/legacy"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.52.0"
+  }
+}

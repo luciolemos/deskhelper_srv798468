@@ -1,0 +1,114 @@
+{% extends 'layouts/base.twig' %}
+
+{% block title %}Aguardando Aprovação | Deskhelper{% endblock %}
+
+{% block global_topnav %}{% endblock %}
+
+{% block head %}
+  <style>
+    .dh-pending-shell {
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 32px 20px;
+      background:
+        radial-gradient(circle at top left, rgba(165, 111, 17, 0.12), transparent 32%),
+        linear-gradient(180deg, rgba(250, 247, 239, 0.98), rgba(243, 246, 239, 0.98));
+    }
+    .dh-pending-card {
+      width: min(100%, 680px);
+      margin: 0;
+      position: relative;
+    }
+    .dh-pending-card .db-card-body {
+      display: grid;
+      gap: 18px;
+      padding: 24px 24px 22px;
+    }
+    .dh-pending-copy {
+      margin: 0;
+      color: rgba(27, 38, 24, 0.78);
+      line-height: 1.6;
+    }
+    .dh-pending-actions {
+      justify-content: center;
+    }
+    .dh-pending-dismiss {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      width: 38px;
+      height: 38px;
+      border: 0;
+      border-radius: 999px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0, 0, 0, 0.05);
+      color: rgba(27, 38, 24, 0.82);
+      cursor: pointer;
+      transition: background-color 140ms ease, color 140ms ease;
+    }
+    .dh-pending-dismiss:hover {
+      background: rgba(0, 0, 0, 0.08);
+      color: #1b2618;
+    }
+    @media (max-width: 640px) {
+      .dh-pending-shell {
+        padding: 20px 16px;
+      }
+      .dh-pending-card .db-card-body {
+        padding: 20px 18px 18px;
+      }
+      .dh-pending-actions {
+        justify-content: stretch;
+      }
+    }
+  </style>
+{% endblock %}
+
+{% block content %}
+<main class="dh-pending-shell">
+  <section class="db-card dh-pending-card">
+    <button class="dh-pending-dismiss" type="button" aria-label="Fechar página" data-pending-close>
+      <i class="bi bi-x-lg" aria-hidden="true"></i>
+    </button>
+    <div class="db-card-body">
+      {% include 'components/deskhelper-page-header.twig' with {
+        badge: 'Deskhelper',
+        title: 'Cadastro recebido',
+        subtitle: 'Seu acesso foi criado e aguarda aprovação do administrador.'
+      } %}
+
+      <p class="dh-pending-copy">Quando o acesso for aprovado, você poderá entrar no sistema normalmente com seu e-mail e senha.</p>
+
+      <div class="db-contact-actions dh-pending-actions">
+        <a class="db-card-link" href="{{ app_url('login') }}">Ir para login</a>
+        <button class="db-card-link db-card-link-secondary" type="button" data-pending-close>Fechar</button>
+      </div>
+    </div>
+  </section>
+</main>
+{% endblock %}
+
+{% block scripts %}
+  {{ parent() }}
+  <script>
+    document.querySelectorAll('[data-pending-close]').forEach(function (button) {
+      button.addEventListener('click', function () {
+        if (window.history.length > 1) {
+          window.history.back();
+          return;
+        }
+
+        window.close();
+        window.location.href = '{{ app_url("login") }}';
+      });
+    });
+  </script>
+{% endblock %}
+
+{% set toastMessage = flashMessage|default('') %}
+{% set toastTitle = 'Cadastro enviado' %}
+{% set toastType = 'success' %}
+{% set toastAutoHide = false %}

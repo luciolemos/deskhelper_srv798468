@@ -1,0 +1,152 @@
+{% extends 'layouts/deskhelper-dashboard.twig' %}
+
+{% block title %}{{ pageTitle }} | Deskhelper{% endblock %}
+
+{% block head %}
+  <style>
+    .dh-doc-layout {
+      display: grid;
+      gap: 24px;
+      margin-top: 28px;
+    }
+    .dh-doc-article {
+      display: grid;
+      gap: 18px;
+    }
+    .dh-doc-article h2 {
+      margin: 0;
+      font-size: 1.08rem;
+      line-height: 1.35;
+    }
+    .dh-doc-article p,
+    .dh-doc-article li {
+      color: rgba(27, 38, 24, 0.82);
+      line-height: 1.7;
+    }
+    .dh-doc-article ul,
+    .dh-doc-article ol {
+      margin: 0;
+      padding-left: 1.2rem;
+      display: grid;
+      gap: 8px;
+    }
+    .dh-doc-faq {
+      display: grid;
+      gap: 14px;
+    }
+    .dh-doc-faq details {
+      border: 1px solid rgba(0,0,0,.08);
+      border-radius: 16px;
+      background: rgba(255,255,255,.92);
+      overflow: hidden;
+    }
+    .dh-doc-faq summary {
+      cursor: pointer;
+      list-style: none;
+      padding: 16px 18px;
+      font-weight: 700;
+      color: var(--text);
+    }
+    .dh-doc-faq summary::-webkit-details-marker {
+      display: none;
+    }
+    .dh-doc-faq-content {
+      padding: 0 18px 18px;
+      color: rgba(27, 38, 24, 0.82);
+      line-height: 1.7;
+    }
+  </style>
+{% endblock %}
+
+{% block deskhelper_shell_title %}{{ pageTitle }}{% endblock %}
+{% block deskhelper_shell_subtitle %}{{ pageSubtitle }}{% endblock %}
+
+{% block deskhelper_main %}
+  <section class="dh-doc-layout">
+    {% if pageType == 'guide' %}
+      <article class="db-card">
+        <div class="db-card-body dh-doc-article">
+          <h2>Como o Deskhelper funciona</h2>
+          <p>O Deskhelper centraliza a abertura, o acompanhamento e o tratamento das ocorrências em um único ambiente. Cada perfil vê apenas o que precisa para operar, com separação clara entre solicitação, execução e administração.</p>
+          <ul>
+            <li><strong>Usuário</strong>: abre ticket, acompanha os próprios tickets e comenta nos próprios tickets.</li>
+            <li><strong>Operador</strong>: vê tickets atribuídos a ele, altera status dos tickets que está tratando, comenta, não gerencia usuários e não redistribui fila para outros.</li>
+            <li><strong>Administrador</strong>: vê tudo, atribui, reatribui, acompanha backlog geral e gerencia usuários, perfis e categorias.</li>
+          </ul>
+        </div>
+      </article>
+
+      <article class="db-card">
+        <div class="db-card-body dh-doc-article">
+          <h2>Fluxo básico de atendimento</h2>
+          <ol>
+            <li>O usuário abre o ticket com título claro, categoria correta e descrição útil.</li>
+            <li>O ticket entra como <strong>Aberto</strong> e inicialmente sem atribuição.</li>
+            <li>O administrador distribui o ticket para um operador e acompanha o backlog geral.</li>
+            <li>O operador trabalha apenas no que recebeu e não reatribui o ticket para outro operador.</li>
+            <li>O solicitante acompanha o andamento pela tela do ticket e comenta quando necessário.</li>
+          </ol>
+        </div>
+      </article>
+
+      <article class="db-card">
+        <div class="db-card-body dh-doc-article">
+          <h2>Regras do operador</h2>
+          <ul>
+            <li><strong>O operador vê</strong>: tickets criados por ele e tickets atribuídos a ele.</li>
+            <li><strong>O operador pode</strong>: comentar e atualizar o status dos tickets que está tratando.</li>
+            <li><strong>O operador não pode</strong>: atribuir para outro operador, reatribuir tickets de terceiros ou gerenciar distribuição global.</li>
+            <li>A visibilidade do operador fica restrita aos próprios tickets e aos tickets atribuídos a ele.</li>
+          </ol>
+        </div>
+      </article>
+
+      <article class="db-card">
+        <div class="db-card-body dh-doc-article">
+          <h2>Boas práticas</h2>
+          <ul>
+            <li>Escreva títulos objetivos, por exemplo: <strong>Não consigo acessar o SPED</strong>.</li>
+            <li>Na descrição, informe o que aconteceu, quando começou e o que já foi tentado.</li>
+            <li>Use os comentários para complementar o ticket, não para abrir um novo assunto.</li>
+            <li>Mantenha telefone e foto atualizados para facilitar a identificação do atendimento.</li>
+          </ul>
+        </div>
+      </article>
+    {% else %}
+      <article class="db-card">
+        <div class="db-card-body">
+          <div class="dh-doc-faq">
+            <details open>
+              <summary>Quem pode abrir ticket no Deskhelper?</summary>
+              <div class="dh-doc-faq-content">Qualquer usuário com cadastro aprovado pode abrir e acompanhar os próprios tickets.</div>
+            </details>
+            <details>
+              <summary>Qual a diferença entre usuário, operador e administrador?</summary>
+              <div class="dh-doc-faq-content">Usuário abre e acompanha tickets próprios. Operador comenta e atualiza os tickets atribuídos a ele, além dos tickets que ele próprio abriu. Administrador acompanha o ambiente, atribui tickets, gerencia usuários, categorias e backlog.</div>
+            </details>
+            <details>
+              <summary>Como acompanho uma ocorrência já aberta?</summary>
+              <div class="dh-doc-faq-content">Acesse <strong>Tickets</strong>, filtre se necessário e clique em <strong>Visualizar</strong>. Na tela do ticket você vê resumo, andamento e comentários.</div>
+            </details>
+            <details>
+              <summary>Quando devo usar comentários?</summary>
+              <div class="dh-doc-faq-content">Use comentários para acrescentar evidências, responder ao atendimento ou informar mudança no comportamento do problema. Evite abrir um novo ticket para o mesmo assunto.</div>
+            </details>
+            <details>
+              <summary>O que significa ticket em aberto, em andamento, resolvido ou fechado?</summary>
+              <div class="dh-doc-faq-content"><strong>Aberto</strong> indica ocorrência recém-registrada. <strong>Em andamento</strong> indica atendimento ativo. <strong>Resolvido</strong> indica tratamento concluído. <strong>Fechado</strong> indica encerramento administrativo do ticket.</div>
+            </details>
+            <details>
+              <summary>Quem atribui os tickets aos operadores?</summary>
+              <div class="dh-doc-faq-content">A atribuição e a reatribuição cabem ao administrador. O operador não redistribui tickets para outros operadores.</div>
+            </details>
+            <details>
+              <summary>Posso alterar meus dados?</summary>
+              <div class="dh-doc-faq-content">Sim. Em <strong>Minha conta</strong> você pode atualizar telefone, senha e foto do perfil.</div>
+            </details>
+          </div>
+        </div>
+      </article>
+    {% endif %}
+  </section>
+{% endblock %}
