@@ -4,28 +4,14 @@
 
 {% block content %}
 <div class="db-shell">
-  {% if deskhelper_session_user.authenticated|default(false) %}
-    {% include 'components/deskhelper-sidebar.twig' with {
-      sidebar_oob: false,
-      deskhelper_nav: deskhelper_nav|merge({ active: 'contact' })
-    } %}
-  {% else %}
-    {% include 'components/legacy-public-sidebar.twig' %}
-  {% endif %}
+  {% include 'components/deskhelper-sidebar.twig' with {
+    sidebar_oob: false,
+    deskhelper_nav: deskhelper_nav|merge({ active: 'contact' })
+  } %}
   <div class="db-sidebar-backdrop" data-sidebar-backdrop aria-hidden="true"></div>
 
   <main class="db-main" aria-label="Contato do Deskhelper">
-    {% if deskhelper_session_user.authenticated|default(false) %}
-      {% include 'components/deskhelper-dashboard-topbar.twig' %}
-    {% else %}
-      {% include 'components/dashboard-topbar.twig' with {
-        lastUpdated: lastUpdated,
-        breadcrumbs: [
-          { label: 'Dashboard', url: app_base_path },
-          { label: 'Contato' }
-        ]
-      } %}
-    {% endif %}
+    {% include 'components/deskhelper-dashboard-topbar.twig' %}
 
     <div id="db-content" class="db-main-body">
       {% include 'components/dashboard-content-header.twig' with {
@@ -135,7 +121,7 @@
           </label>
 
           <div class="db-form-actions db-form-actions-wrap">
-            <a href="{{ app_base_path }}/login" class="db-card-link db-card-link-secondary">Voltar ao login</a>
+            <a href="{{ app_url('app') }}" class="db-card-link db-card-link-secondary">Voltar ao painel</a>
             <button type="submit" class="db-card-link">Enviar mensagem</button>
           </div>
         </form>

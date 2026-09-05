@@ -6,6 +6,8 @@ use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use League\CommonMark\CommonMarkConverter;
 use App\Application\Notification\ContactMailer;
+use App\Application\Middleware\DeskhelperAuthMiddleware;
+use App\Application\Middleware\DeskhelperRoleMiddleware;
 use App\Infrastructure\Persistence\Dashboard\DashboardRepository;
 use Slim\Views\Twig;
 
@@ -259,7 +261,7 @@ $app->get('/contato', function (Request $request, Response $response) use ($app,
         'formSuccess' => false,
         'csrfToken' => $ensureCsrfToken(),
     ], $navbarAuthContext()));
-});
+})->add(new DeskhelperRoleMiddleware(['admin']))->add(new DeskhelperAuthMiddleware());
 
 $app->get('/solicitar-card', function (Request $request, Response $response) use ($app, $navbarAuthContext, $buildGroupedSections, $ensureCsrfToken, $requesterRanks) {
     /** @var DashboardRepository $repo */
@@ -549,4 +551,4 @@ $app->post('/contato', function (Request $request, Response $response) use ($app
         'formSuccess' => $formSuccess,
         'csrfToken' => $ensureCsrfToken(),
     ], $navbarAuthContext()));
-});
+})->add(new DeskhelperRoleMiddleware(['admin']))->add(new DeskhelperAuthMiddleware());

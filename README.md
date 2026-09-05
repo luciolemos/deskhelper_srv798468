@@ -20,7 +20,7 @@ O link **Esqueci minha senha** permite que uma conta ativa solicite uma redefini
 
 Cada conta aceita no máximo **3 solicitações por hora**; há também um limite de 10 solicitações por endereço IP no mesmo período. Ao atingir o limite, as tentativas seguintes não geram outro e-mail. A tela continua exibindo uma resposta neutra para não revelar se o endereço informado pertence a uma conta ativa. Portanto, quando uma pessoa relata que recebeu os primeiros links e deixou de receber os seguintes, verifique `password_reset_attempts` antes de diagnosticar o SMTP.
 
-O envio usa `APP_URL`, `MAILER_DSN` e `MAIL_FROM`. O formulário público em `/contato` entrega as mensagens ao endereço definido em `CONTACT_TO`. A senha do provedor deve ficar somente no `.env`; para Gmail, use uma senha de app sem espaços e codifique caracteres reservados no DSN, como `@` em `%40`.
+O envio usa `APP_URL`, `MAILER_DSN` e `MAIL_FROM`. O formulário administrativo em `/contato` entrega as mensagens ao endereço definido em `CONTACT_TO`. A senha do provedor deve ficar somente no `.env`; para Gmail, use uma senha de app sem espaços e codifique caracteres reservados no DSN, como `@` em `%40`.
 
 ## Rotas principais
 

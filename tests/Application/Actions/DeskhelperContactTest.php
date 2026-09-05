@@ -17,14 +17,12 @@ final class DeskhelperContactTest extends TestCase
         $_ENV['CONTACT_TO'] = 'support@example.test';
     }
 
-    public function testContactPageProvidesCsrfProtectedForm(): void
+    public function testContactPageRequiresAuthentication(): void
     {
         $response = $this->getAppInstance()->handle($this->createRequest('GET', '/deskhelper/contato'));
-        $body = (string) $response->getBody();
 
-        $this->assertSame(200, $response->getStatusCode());
-        $this->assertStringContainsString('name="csrf_token"', $body);
-        $this->assertStringContainsString('Fale com a equipe responsável pelo Deskhelper', $body);
+        $this->assertSame(302, $response->getStatusCode());
+        $this->assertSame('/deskhelper/login', $response->getHeaderLine('Location'));
     }
 
     public function testAuthenticatedContactPageShowsUserMenu(): void
@@ -55,7 +53,7 @@ final class DeskhelperContactTest extends TestCase
 
     public function testValidContactMessageIsAccepted(): void
     {
-        $_SESSION = ['csrf_token' => 'contact-csrf'];
+        $this->authenticateAsAdmin();
         $response = $this->getAppInstance()->handle(
             $this->createRequest('POST', '/deskhelper/contato')->withParsedBody([
                 'csrf_token' => 'contact-csrf', 'name' => 'Usuário de teste',
@@ -70,7 +68,8 @@ final class DeskhelperContactTest extends TestCase
 
     public function testExpiredFormSessionDoesNotSendMessage(): void
     {
-        $_SESSION = ['csrf_token' => 'expected-token'];
+        $this->authenticateAsAdmin();
+        $_SESSION['csrf_token'] = 'expected-token';
         $response = $this->getAppInstance()->handle(
             $this->createRequest('POST', '/deskhelper/contato')->withParsedBody([
                 'csrf_token' => 'wrong-token', 'name' => 'Usuário de teste',
@@ -81,5 +80,23 @@ final class DeskhelperContactTest extends TestCase
 
         $this->assertStringContainsString('A sessão do formulário expirou.', (string) $response->getBody());
         $this->assertStringNotContainsString('Mensagem enviada com sucesso.', (string) $response->getBody());
+    }
+
+    public function testLoginDoesNotOfferPublicContactLink(): void
+    {
+        $response = $this->getAppInstance()->handle($this->createRequest('GET', '/deskhelper/login'));
+
+        $this->assertStringNotContainsString('Entrar em contato com o suporte', (string) $response->getBody());
+    }
+
+    private function authenticateAsAdmin(): void
+    {
+        $_SESSION = [
+            'deskhelper_user_id' => 1,
+            'deskhelper_user_name' => 'admin',
+            'deskhelper_user_email' => 'admin@deskhelper.local',
+            'deskhelper_user_roles' => ['admin'],
+            'csrf_token' => 'contact-csrf',
+        ];
     }
 }
